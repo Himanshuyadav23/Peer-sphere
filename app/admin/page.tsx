@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { collection, getDocs, query, where, orderBy, limit, doc, getDoc } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
 import { getDb, getFirebaseAuth } from '@/lib/firebase';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -68,32 +68,39 @@ export default function AdminPanel() {
 			// Load stats
 			const [usersSnap, communitiesSnap, eventsSnap, messagesSnap] = await Promise.all([
 				getDocs(collection(db, 'users')),
-				getDocs(query(collection(db, 'communities'), where('deleted', '!=', true))),
+				getDocs(collection(db, 'communities')),
 				getDocs(collection(db, 'events')),
 				getDocs(collection(db, 'messages'))
 			]);
 
+			// Filter out deleted communities for stats
+			const activeCommunities = communitiesSnap.docs.filter(doc => !doc.data().deleted);
+
 			setStats({
 				totalUsers: usersSnap.size,
-				totalCommunities: communitiesSnap.size,
+				totalCommunities: activeCommunities.length,
 				totalEvents: eventsSnap.size,
 				totalMessages: messagesSnap.size,
 			});
 
-			// Load recent users
-			const recentUsersQuery = query(collection(db, 'users'), orderBy('createdAt', 'desc'), limit(5));
-			const recentUsersSnap = await getDocs(recentUsersQuery);
-			setRecentUsers(recentUsersSnap.docs.map(d => ({ id: d.id, ...d.data() })));
+			// Load recent users - sort manually since some may not have createdAt
+			const allUsers = usersSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+			allUsers.sort((a: any, b: any) => {
+				const aTime = a.createdAt?.seconds || a.updatedAt?.seconds || 0;
+				const bTime = b.createdAt?.seconds || b.updatedAt?.seconds || 0;
+				return bTime - aTime;
+			});
+			setRecentUsers(allUsers.slice(0, 5));
 
-			// Load recent communities
-			const recentCommunitiesQuery = query(
-				collection(db, 'communities'),
-				where('deleted', '!=', true),
-				orderBy('createdAt', 'desc'),
-				limit(5)
-			);
-			const recentCommunitiesSnap = await getDocs(recentCommunitiesQuery);
-			setRecentCommunities(recentCommunitiesSnap.docs.map(d => ({ id: d.id, ...d.data() })));
+			// Load recent communities - sort manually since some may not have createdAt
+			const allCommunities = communitiesSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+			const activeCommunitiesList = allCommunities.filter((c: any) => !c.deleted);
+			activeCommunitiesList.sort((a: any, b: any) => {
+				const aTime = a.createdAt?.seconds || 0;
+				const bTime = b.createdAt?.seconds || 0;
+				return bTime - aTime;
+			});
+			setRecentCommunities(activeCommunitiesList.slice(0, 5));
 
 		} catch (error) {
 			console.error('Error loading admin data:', error);
@@ -229,8 +236,14 @@ export default function AdminPanel() {
 						</CardTitle>
 					</CardHeader>
 					<CardContent>
-						<div className="space-y-4">
-							{recentUsers.map((u: any) => (
+						{recentUsers.length === 0 ? (
+							<div className="text-center py-8 text-gray-500">
+								<Users className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+								<p className="text-sm">No users yet</p>
+							</div>
+						) : (
+							<div className="space-y-4">
+								{recentUsers.map((u: any) => (
 								<div key={u.id} className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
 									<Avatar>
 										<AvatarFallback className="bg-gradient-to-br from-pink-500 to-purple-600 text-white">
@@ -239,14 +252,17 @@ export default function AdminPanel() {
 									</Avatar>
 									<div className="flex-1">
 										<div className="font-semibold text-gray-800">{u.name || u.email}</div>
-										<div className="text-sm text-gray-500">{u.year} • {u.batch}</div>
+										<div className="text-sm text-gray-500">{u.year || 'N/A'} • {u.batch || 'N/A'}</div>
 									</div>
-									<Badge variant="secondary" className="text-xs">
-										{new Date(u.createdAt?.seconds * 1000).toLocaleDateString()}
-									</Badge>
+									{u.createdAt?.seconds && (
+										<Badge variant="secondary" className="text-xs">
+											{new Date(u.createdAt.seconds * 1000).toLocaleDateString()}
+										</Badge>
+									)}
 								</div>
-							))}
-						</div>
+								))}
+							</div>
+						)}
 					</CardContent>
 				</Card>
 
@@ -259,8 +275,14 @@ export default function AdminPanel() {
 						</CardTitle>
 					</CardHeader>
 					<CardContent>
-						<div className="space-y-4">
-							{recentCommunities.map((c: any) => (
+						{recentCommunities.length === 0 ? (
+							<div className="text-center py-8 text-gray-500">
+								<Crown className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+								<p className="text-sm">No communities yet</p>
+							</div>
+						) : (
+							<div className="space-y-4">
+								{recentCommunities.map((c: any) => (
 								<div key={c.id} className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
 									<div className="w-12 h-12 bg-gradient-to-br from-pink-500 to-purple-600 rounded-xl flex items-center justify-center">
 										<span className="text-white font-bold text-sm">
@@ -275,8 +297,9 @@ export default function AdminPanel() {
 										{c.category}
 									</Badge>
 								</div>
-							))}
-						</div>
+								))}
+							</div>
+						)}
 					</CardContent>
 				</Card>
 			</div>
