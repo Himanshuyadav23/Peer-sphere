@@ -83,6 +83,12 @@ export default function CommunitiesScreen() {
           value={searchQuery}
           onChangeText={setSearchQuery}
         />
+        <TouchableOpacity
+          style={styles.createButton}
+          onPress={() => router.push('/communities/create')}
+        >
+          <Text style={styles.createButtonText}>Create Community</Text>
+        </TouchableOpacity>
       </View>
 
       {filteredCommunities.map((community) => {
@@ -136,6 +142,18 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#e5e7eb',
     fontSize: 16,
+    marginBottom: 12,
+  },
+  createButton: {
+    backgroundColor: '#6366f1',
+    padding: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  createButtonText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '600',
   },
   card: {
     backgroundColor: '#ffffff',
