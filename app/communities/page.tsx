@@ -36,11 +36,12 @@ export default function CommunitiesListPage() {
 		const q = query(
 			collection(getDb(), 'communities'),
 			where('deleted', '!=', true),
-			orderBy('deleted'),
 			orderBy('createdAt', 'desc')
 		);
 		const unsub = onSnapshot(q, (snap) => {
 			setCommunities(snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) } as Community)));
+		}, (error) => {
+			console.error('Error fetching communities:', error);
 		});
 		return () => unsub();
 	}, []);

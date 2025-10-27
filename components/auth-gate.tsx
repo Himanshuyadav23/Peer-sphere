@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { onAuthStateChanged } from 'firebase/auth';
+import { onAuthStateChanged, type User } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { useRouter, usePathname } from 'next/navigation';
 import { getDb, getFirebaseAuth } from '@/lib/firebase';
@@ -10,13 +10,15 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
 	const router = useRouter();
 	const pathname = usePathname();
 	const [ready, setReady] = useState(false);
+	const [user, setUser] = useState<User | null>(null);
 	const [setupError, setSetupError] = useState<string | null>(null);
 	useEffect(() => {
 		let unsub = () => {};
 		try {
 			const auth = getFirebaseAuth();
-			unsub = onAuthStateChanged(auth, async (user) => {
-				if (!user) {
+			unsub = onAuthStateChanged(auth, async (firebaseUser) => {
+				setUser(firebaseUser);
+				if (!firebaseUser) {
 					if (!pathname?.startsWith('/login') && !pathname?.startsWith('/signup')) {
 						router.replace('/login');
 					}
@@ -24,7 +26,7 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
 					return;
 				}
 				try {
-					const snap = await getDoc(doc(getDb(), 'users', user.uid));
+					const snap = await getDoc(doc(getDb(), 'users', firebaseUser.uid));
 					const data = snap.data() as any;
 					const isSetup = data && data.name && data.year && data.batch;
 					if (!isSetup && !pathname?.startsWith('/profile/setup')) {
@@ -45,6 +47,7 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
 
 	if (!ready) return <div className="p-4 text-sm text-muted-foreground">Loading...</div>;
 	if (setupError) return <div className="p-4 text-sm text-muted-foreground">{setupError}</div>;
+	if (!user) return null; // Don't render children until authenticated
 	return <>{children}</>;
 }
 
