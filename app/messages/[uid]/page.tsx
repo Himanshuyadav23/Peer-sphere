@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { doc, getDoc } from 'firebase/firestore';
 import { ArrowLeft, Send, MoreVertical, Phone, Video, Heart, Smile } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function ChatPage() {
 	const params = useParams<{ uid: string }>();
@@ -79,10 +80,20 @@ export default function ChatPage() {
 	async function onSend(e: React.FormEvent) {
 		e.preventDefault();
 		if (!text.trim()) return;
+		if (!me || !otherId) {
+			console.error('Missing me or otherId');
+			return;
+		}
 		setIsTyping(true);
-		await sendMessage(me, otherId, text.trim());
-		setText('');
-		setIsTyping(false);
+		try {
+			await sendMessage(me, otherId, text.trim());
+			setText('');
+		} catch (error: any) {
+			console.error('Error sending message:', error);
+			toast.error(error.message || 'Failed to send message');
+		} finally {
+			setIsTyping(false);
+		}
 	}
 
 	const handleKeyPress = (e: React.KeyboardEvent) => {
