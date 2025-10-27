@@ -8,6 +8,8 @@ function getConversationId(a: string, b: string) {
 export async function sendMessage(senderId: string, receiverId: string, text: string) {
 	const db = getDb();
 	const conversationId = getConversationId(senderId, receiverId);
+	
+	// Create message
 	await addDoc(collection(db, 'messages'), {
 		conversationId,
 		senderId,
@@ -15,14 +17,20 @@ export async function sendMessage(senderId: string, receiverId: string, text: st
 		text,
 		timestamp: serverTimestamp(),
 	});
-	// create notification for receiver
-	await addDoc(collection(db, 'notifications'), {
-		userId: receiverId,
-		type: 'dm',
-		message: text,
-		link: `/messages/${senderId}`,
-		timestamp: serverTimestamp(),
-	});
+	
+	// Create notification for receiver (skip if it fails)
+	try {
+		await addDoc(collection(db, 'notifications'), {
+			userId: receiverId,
+			type: 'dm',
+			message: text,
+			link: `/messages/${senderId}`,
+			timestamp: serverTimestamp(),
+		});
+	} catch (error) {
+		console.error('Failed to create notification:', error);
+		// Don't throw - message was sent successfully
+	}
 }
 
 export function listenToConversation(a: string, b: string, cb: (docs: any[]) => void) {

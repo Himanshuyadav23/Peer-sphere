@@ -38,10 +38,11 @@ service cloud.firestore {
          request.auth.uid == resource.data.receiverId);
     }
     
-    // Notifications - users can read their own notifications
+    // Notifications - users can read their own notifications and create them
     match /notifications/{notificationId} {
       allow read: if request.auth != null && request.auth.uid == resource.data.userId;
-      allow write: if request.auth != null;
+      allow create: if request.auth != null;
+      allow update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
     }
   }
 }
