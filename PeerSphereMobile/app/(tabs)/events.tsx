@@ -67,6 +67,12 @@ export default function EventsScreen() {
     <ScrollView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Events</Text>
+        <TouchableOpacity
+          style={styles.createButton}
+          onPress={() => router.push('/events/create')}
+        >
+          <Text style={styles.createButtonText}>Create Event</Text>
+        </TouchableOpacity>
       </View>
 
       {events.length === 0 ? (
@@ -77,7 +83,11 @@ export default function EventsScreen() {
         events.map((event) => {
           const attending = isAttending(event);
           return (
-            <View key={event.id} style={styles.card}>
+            <TouchableOpacity
+              key={event.id}
+              style={styles.card}
+              onPress={() => router.push(`/events/${event.id}`)}
+            >
               <View style={styles.cardHeader}>
                 <Text style={styles.cardTitle}>{event.title}</Text>
                 {attending && (
@@ -106,7 +116,10 @@ export default function EventsScreen() {
 
               <TouchableOpacity
                 style={[styles.button, attending && styles.buttonCancel]}
-                onPress={() => handleRSVP(event.id, attending)}
+                onPress={(e) => {
+                  e.stopPropagation();
+                  handleRSVP(event.id, attending);
+                }}
                 disabled={rsvpLoading === event.id}
               >
                 <Text style={styles.buttonText}>
@@ -117,7 +130,7 @@ export default function EventsScreen() {
                     : 'RSVP'}
                 </Text>
               </TouchableOpacity>
-            </View>
+            </TouchableOpacity>
           );
         })
       )}
@@ -138,6 +151,18 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: 'bold',
     color: '#111827',
+    marginBottom: 12,
+  },
+  createButton: {
+    backgroundColor: '#6366f1',
+    padding: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  createButtonText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '600',
   },
   emptyContainer: {
     padding: 40,
