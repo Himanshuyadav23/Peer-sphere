@@ -1,7 +1,7 @@
 "use client";
 
 import Link from 'next/link';
-import { collection, onSnapshot, orderBy, query, where } from 'firebase/firestore';
+import { collection, onSnapshot } from 'firebase/firestore';
 import { useEffect, useState, useMemo } from 'react';
 import { getDb } from '@/lib/firebase';
 import type { Community } from '@/lib/types';
@@ -43,14 +43,18 @@ export default function CommunitiesListPage() {
 	const [selectedCategory, setSelectedCategory] = useState('');
 
 	useEffect(() => {
-		const q = query(
-			collection(getDb(), 'communities'),
-			orderBy('createdAt', 'desc')
-		);
-		const unsub = onSnapshot(q, (snap) => {
+		// Use onSnapshot without orderBy to avoid index requirements
+		const unsub = onSnapshot(collection(getDb(), 'communities'), (snap) => {
 			const allCommunities = snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) } as Community));
 			// Filter out deleted communities on the client side
-			const activeCommunities = allCommunities.filter(community => !community.deleted);
+			const activeCommunities = allCommunities
+				.filter(community => !community.deleted)
+				.sort((a, b) => {
+					// Sort by createdAt descending
+					const aTime = a.createdAt?.seconds || 0;
+					const bTime = b.createdAt?.seconds || 0;
+					return bTime - aTime;
+				});
 			setCommunities(activeCommunities);
 		}, (error) => {
 			console.error('Error fetching communities:', error);

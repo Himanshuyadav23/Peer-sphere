@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { collection, onSnapshot, query, where, orderBy } from 'firebase/firestore';
+import { collection, onSnapshot, query, where } from 'firebase/firestore';
 import { getDb, getFirebaseAuth } from '@/lib/firebase';
 import type { Community } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -26,26 +26,34 @@ export default function MyCommunitiesPage() {
 		// Load my communities
 		const q1 = query(
 			collection(getDb(), 'communities'),
-			where('members', 'array-contains', uid),
-			orderBy('createdAt', 'desc')
+			where('members', 'array-contains', uid)
 		);
 		
 		const unsub1 = onSnapshot(q1, (snap) => {
-			const communities = snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) } as Community));
-			setMyCommunities(communities.filter(c => !c.deleted));
+			const communities = snap.docs
+				.map((d) => ({ id: d.id, ...(d.data() as any) } as Community))
+				.filter(c => !c.deleted)
+				.sort((a, b) => {
+					const aTime = a.createdAt?.seconds || 0;
+					const bTime = b.createdAt?.seconds || 0;
+					return bTime - aTime;
+				});
+			setMyCommunities(communities);
 		}, (error) => {
 			console.error('Error loading my communities:', error);
 		});
 
 		// Load all communities
-		const q2 = query(
-			collection(getDb(), 'communities'),
-			orderBy('createdAt', 'desc')
-		);
-
-		const unsub2 = onSnapshot(q2, (snap) => {
-			const communities = snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) } as Community));
-			setAllCommunities(communities.filter(c => !c.deleted));
+		const unsub2 = onSnapshot(collection(getDb(), 'communities'), (snap) => {
+			const communities = snap.docs
+				.map((d) => ({ id: d.id, ...(d.data() as any) } as Community))
+				.filter(c => !c.deleted)
+				.sort((a, b) => {
+					const aTime = a.createdAt?.seconds || 0;
+					const bTime = b.createdAt?.seconds || 0;
+					return bTime - aTime;
+				});
+			setAllCommunities(communities);
 			setLoading(false);
 		}, (error) => {
 			console.error('Error loading all communities:', error);
