@@ -114,10 +114,12 @@ export default function CommunityDetailPage() {
 				<div className="flex flex-col gap-2 sm:flex-row">
 					{isCreator && (
 						<>
-							<Button variant="outline" size="sm" className="gap-2">
-								<Edit className="h-4 w-4" />
-								Edit
-							</Button>
+							<Link href={`/communities/${id}/settings`}>
+								<Button variant="outline" size="sm" className="gap-2">
+									<Edit className="h-4 w-4" />
+									Edit
+								</Button>
+							</Link>
 							<Button 
 								variant="destructive" 
 								size="sm" 

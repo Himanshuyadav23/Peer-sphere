@@ -13,6 +13,10 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Users, Calendar, Plus } from 'lucide-react';
 
 const categories = [
+	'M.Sc. Computer Science',
+	'M.Sc. Bioinformatics',
+	'M.Sc. Data Science',
+	'PG Diploma in Computer Applications',
 	'Academic',
 	'Technology',
 	'Sports',

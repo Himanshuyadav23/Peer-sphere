@@ -1,4 +1,4 @@
-import { arrayRemove, arrayUnion, collection, doc, getDoc, updateDoc, addDoc, serverTimestamp } from 'firebase/firestore';
+import { arrayRemove, arrayUnion, collection, doc, getDoc, getDocs, query, updateDoc, addDoc, serverTimestamp, where } from 'firebase/firestore';
 import { getDb } from './firebase';
 import type { Community } from './types';
 
@@ -64,4 +64,11 @@ export async function getCommunity(communityId: string): Promise<Community | nul
 	const snap = await getDoc(ref);
 	if (!snap.exists()) return null;
 	return { id: snap.id, ...(snap.data() as any) } as Community;
+}
+
+export async function getMyCommunities(uid: string): Promise<Community[]> {
+	const db = getDb();
+	const q = query(collection(db, 'communities'), where('members', 'array-contains', uid));
+	const snap = await getDocs(q);
+	return snap.docs.map(doc => ({ id: doc.id, ...(doc.data() as any) } as Community));
 }

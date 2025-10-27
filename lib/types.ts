@@ -2,8 +2,9 @@ export type UserDoc = {
 	uid: string;
 	name: string;
 	email: string | null;
-	year: '1st' | '2nd' | '3rd' | 'MCA' | '';
+	year: '1st' | '2nd' | '3rd' | 'MCA' | 'PG Diploma' | '';
 	batch: string;
+	course?: string; // Optional course field
 	interests: string[];
 	avatarUrl: string;
 	isAdmin?: boolean;

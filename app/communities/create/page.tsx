@@ -24,6 +24,10 @@ const communitySchema = z.object({
 type CommunityFormData = z.infer<typeof communitySchema>;
 
 const categories = [
+	'M.Sc. Computer Science',
+	'M.Sc. Bioinformatics',
+	'M.Sc. Data Science',
+	'PG Diploma in Computer Applications',
 	'Academic',
 	'Technology',
 	'Sports',

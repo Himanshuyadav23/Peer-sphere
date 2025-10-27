@@ -1,9 +1,11 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { getFirebaseAuth } from '@/lib/firebase';
 import { createEvent } from '@/lib/events';
+import { getMyCommunities } from '@/lib/communities';
+import type { Community } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,12 +24,24 @@ export default function CreateEventPage() {
 	const [time, setTime] = useState('');
 	const [venue, setVenue] = useState('');
 	const [communityId, setCommunityId] = useState('');
+	const [myCommunities, setMyCommunities] = useState<Community[]>([]);
+	const [loading, setLoading] = useState(true);
 	const [saving, setSaving] = useState(false);
+	const uid = auth.currentUser?.uid;
+
+	useEffect(() => {
+		if (!uid) return;
+		getMyCommunities(uid).then(communities => {
+			setMyCommunities(communities);
+			setLoading(false);
+		}).catch(() => setLoading(false));
+	}, [uid]);
 
 	async function onSubmit(e: React.FormEvent) {
 		e.preventDefault();
 		const user = auth.currentUser;
 		if (!user) return toast.error('Not authenticated');
+		if (!communityId) return toast.error('Please select a community');
 		setSaving(true);
 		try {
 			const id = await createEvent({ title, description, date, time, venue, createdBy: user.uid, communityId });
@@ -137,23 +151,46 @@ export default function CreateEventPage() {
 								/>
 							</div>
 
-							{/* Community ID */}
+							{/* Community */}
 							<div className="space-y-2">
 								<Label htmlFor="communityId" className="flex items-center gap-2">
 									<Users className="w-4 h-4 text-pink-600" />
-									Community ID *
+									Community *
 								</Label>
-								<Input 
-									id="communityId" 
-									value={communityId} 
-									onChange={(e) => setCommunityId(e.target.value)} 
-									placeholder="Enter community ID"
-									required
-									className="h-11"
-								/>
-								<p className="text-xs text-gray-500">
-									The ID of the community hosting this event
-								</p>
+								{loading ? (
+									<Input disabled value="Loading communities..." className="h-11" />
+								) : myCommunities.length === 0 ? (
+									<>
+										<Input 
+											disabled
+											value="No communities available. Join a community first!" 
+											className="h-11"
+										/>
+										<p className="text-xs text-red-500">
+											You need to join a community before creating events
+										</p>
+									</>
+								) : (
+									<>
+										<select 
+											id="communityId"
+											value={communityId} 
+											onChange={(e) => setCommunityId(e.target.value)} 
+											required
+											className="w-full h-11 rounded-md border border-input bg-background px-3 py-2"
+										>
+											<option value="">Select Community</option>
+											{myCommunities.map(community => (
+												<option key={community.id} value={community.id}>
+													{community.name}
+												</option>
+											))}
+										</select>
+										<p className="text-xs text-gray-500">
+											Select the community hosting this event
+										</p>
+									</>
+								)}
 							</div>
 
 							{/* Submit Button */}
@@ -169,7 +206,7 @@ export default function CreateEventPage() {
 								</Button>
 								<Button 
 									type="submit" 
-									disabled={saving}
+									disabled={saving || myCommunities.length === 0}
 									className="flex-1 bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white"
 								>
 									{saving ? (

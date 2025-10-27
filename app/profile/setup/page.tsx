@@ -16,11 +16,20 @@ export default function ProfileSetupPage() {
 	const auth = getFirebaseAuth();
 	const db = getDb();
 	const [name, setName] = useState('');
-	const [year, setYear] = useState<'1st' | '2nd' | '3rd' | 'MCA' | ''>('');
+	const [year, setYear] = useState<'1st' | '2nd' | '3rd' | 'MCA' | 'PG Diploma' | ''>('');
+	const [course, setCourse] = useState('');
 	const [batch, setBatch] = useState('');
 	const [interests, setInterests] = useState('');
 	const [adminSecret, setAdminSecret] = useState('');
 	const [saving, setSaving] = useState(false);
+
+	const COURSE_OPTIONS = [
+		'M.Sc. Computer Science',
+		'M.Sc. Bioinformatics',
+		'M.Sc. Data Science',
+		'PG Diploma in Computer Applications',
+		'Other'
+	];
 
 	async function onSubmit(e: React.FormEvent) {
 		e.preventDefault();
@@ -39,6 +48,7 @@ export default function ProfileSetupPage() {
 				name,
 				email: user.email,
 				year,
+				course: course || undefined,
 				batch,
 				interests: interests.split(',').map((s) => s.trim()).filter(Boolean),
 				isAdmin: isAdmin || false,
@@ -69,20 +79,32 @@ export default function ProfileSetupPage() {
 						<Input id="name" value={name} onChange={(e) => setName(e.target.value)} required />
 					</div>
 					<div className="space-y-2">
+						<Label>Course</Label>
+						<Select value={course} onValueChange={(v) => setCourse(v)}>
+							<SelectTrigger><SelectValue placeholder="Select your course" /></SelectTrigger>
+							<SelectContent>
+								{COURSE_OPTIONS.map((option) => (
+									<SelectItem key={option} value={option}>{option}</SelectItem>
+								))}
+							</SelectContent>
+						</Select>
+					</div>
+					<div className="space-y-2">
 						<Label>Year</Label>
 						<Select value={year} onValueChange={(v) => setYear(v as any)}>
 							<SelectTrigger><SelectValue placeholder="Select year" /></SelectTrigger>
 							<SelectContent>
-								<SelectItem value="1st">1st</SelectItem>
-								<SelectItem value="2nd">2nd</SelectItem>
-								<SelectItem value="3rd">3rd</SelectItem>
+								<SelectItem value="1st">1st Year</SelectItem>
+								<SelectItem value="2nd">2nd Year</SelectItem>
+								<SelectItem value="3rd">3rd Year</SelectItem>
 								<SelectItem value="MCA">MCA</SelectItem>
+								<SelectItem value="PG Diploma">PG Diploma</SelectItem>
 							</SelectContent>
 						</Select>
 					</div>
 					<div className="space-y-2">
 						<Label htmlFor="batch">Batch</Label>
-						<Input id="batch" value={batch} onChange={(e) => setBatch(e.target.value)} required />
+						<Input id="batch" value={batch} onChange={(e) => setBatch(e.target.value)} placeholder="e.g. 2024" required />
 					</div>
 					<div className="space-y-2">
 						<Label htmlFor="interests">Skills/Interests</Label>

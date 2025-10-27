@@ -20,7 +20,14 @@ const INTEREST_OPTIONS = [
 	'Gaming', 'Music', 'Sports', 'Art', 'Photography', 'Reading', 'Travel', 'Cooking'
 ];
 
-const YEAR_OPTIONS = ['1st', '2nd', '3rd', 'MCA'] as const;
+const COURSE_OPTIONS = [
+	'M.Sc. Computer Science',
+	'M.Sc. Bioinformatics',
+	'M.Sc. Data Science',
+	'PG Diploma in Computer Applications',
+	'Other'
+];
+const YEAR_OPTIONS = ['1st', '2nd', '3rd', 'MCA', 'PG Diploma'] as const;
 const BATCH_OPTIONS = ['2021', '2022', '2023', '2024', '2025'];
 
 export default function EditProfilePage() {
@@ -31,6 +38,7 @@ export default function EditProfilePage() {
 	const [saving, setSaving] = useState(false);
 	const [formData, setFormData] = useState<Partial<UserDoc>>({
 		name: '',
+		course: '',
 		year: '',
 		batch: '',
 		interests: [],
@@ -57,6 +65,7 @@ export default function EditProfilePage() {
 				const data = snap.data() as UserDoc;
 				setFormData({
 					name: data.name || '',
+					course: data.course || '',
 					year: data.year || '',
 					batch: data.batch || '',
 					interests: data.interests || [],
@@ -77,15 +86,30 @@ export default function EditProfilePage() {
 
 		setSaving(true);
 		try {
-			// Check if admin secret is provided
-			const isAdmin = adminSecret === 'PEERSPHERE_ADMIN_2024';
+			// Check if admin secret is provided and correct
+			let isAdmin = formData.isAdmin; // Keep current status by default
+			
+			if (adminSecret) {
+				// If admin secret is provided, check if it's correct
+				if (adminSecret === 'PEERSPHERE_ADMIN_2024') {
+					isAdmin = true; // Grant admin
+				} else {
+					setSaving(false);
+					toast.error('Invalid admin secret');
+					return;
+				}
+			} else {
+				// If admin secret is empty, remove admin access
+				isAdmin = false;
+			}
+			
 			const dataToSave = {
 				...formData,
-				isAdmin: adminSecret ? isAdmin : formData.isAdmin,
+				isAdmin,
 			};
 			
 			await updateUserProfile(user.uid, dataToSave);
-			toast.success('Profile updated successfully!');
+			toast.success(isAdmin ? 'Admin access granted!' : 'Admin access removed');
 			router.push(`/profile/${user.uid}`);
 		} catch (error: any) {
 			toast.error(error.message || 'Failed to update profile');
@@ -177,6 +201,25 @@ export default function EditProfilePage() {
 								/>
 							</div>
 
+							{/* Course */}
+							<div className="space-y-2">
+								<Label htmlFor="course" className="flex items-center gap-2">
+									<GraduationCap className="w-4 h-4 text-indigo-600" />
+									Course
+								</Label>
+								<select 
+									id="course"
+									value={formData.course || ''} 
+									onChange={(e) => setFormData({ ...formData, course: e.target.value })} 
+									className="w-full h-11 rounded-md border border-input bg-background px-3 py-2"
+								>
+									<option value="">Select Course</option>
+									{COURSE_OPTIONS.map(course => (
+										<option key={course} value={course}>{course}</option>
+									))}
+								</select>
+							</div>
+
 							{/* Year */}
 							<div className="space-y-2">
 								<Label htmlFor="year" className="flex items-center gap-2">
@@ -232,7 +275,7 @@ export default function EditProfilePage() {
 									className="h-11"
 								/>
 								<p className="text-xs text-gray-500">
-									Enter admin secret to become admin. Leave empty to remove admin access.
+									⚠️ Warning: Leave the field empty to REMOVE your admin access. Only enter the secret if you want to GAIN admin access.
 								</p>
 							</div>
 

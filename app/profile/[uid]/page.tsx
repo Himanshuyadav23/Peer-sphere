@@ -115,16 +115,21 @@ export default function UserProfilePage() {
 								<h1 className="text-3xl font-black mb-2">{userDoc.name}</h1>
 								<p className="text-pink-100 text-lg mb-4">{userDoc.email}</p>
 								<div className="flex flex-wrap gap-2 justify-center md:justify-start">
-									{userDoc.year && (
+									{userDoc.course && (
 										<Badge variant="secondary" className="bg-white/20 text-white border-white/30">
 											<GraduationCap className="w-3 h-3 mr-1" />
+											{userDoc.course}
+										</Badge>
+									)}
+									{userDoc.year && (
+										<Badge variant="secondary" className="bg-white/20 text-white border-white/30">
 											{userDoc.year} Year
 										</Badge>
 									)}
 									{userDoc.batch && (
 										<Badge variant="secondary" className="bg-white/20 text-white border-white/30">
 											<Calendar className="w-3 h-3 mr-1" />
-											{userDoc.batch}
+											Batch {userDoc.batch}
 										</Badge>
 									)}
 								</div>
@@ -169,6 +174,18 @@ export default function UserProfilePage() {
 								<div className="font-semibold text-gray-800">{userDoc.email}</div>
 							</div>
 						</div>
+
+						{userDoc.course && (
+							<div className="flex items-center gap-4">
+								<div className="p-3 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl">
+									<GraduationCap className="w-6 h-6 text-white" />
+								</div>
+								<div>
+									<div className="text-sm text-gray-500 mb-1">Course</div>
+									<div className="font-semibold text-gray-800">{userDoc.course}</div>
+								</div>
+							</div>
+						)}
 
 						{userDoc.year && (
 							<div className="flex items-center gap-4">
