@@ -94,7 +94,11 @@ export default function CommunitiesScreen() {
       {filteredCommunities.map((community) => {
         const isJoined = myCommunities.includes(community.id);
         return (
-          <View key={community.id} style={styles.card}>
+          <TouchableOpacity
+            key={community.id}
+            style={styles.card}
+            onPress={() => router.push(`/communities/${community.id}`)}
+          >
             <View style={styles.cardHeader}>
               <Text style={styles.cardTitle}>{community.name}</Text>
               <View style={[styles.badge, { backgroundColor: isJoined ? '#10b981' : '#6b7280' }]}>
@@ -107,13 +111,16 @@ export default function CommunitiesScreen() {
             <Text style={styles.cardDescription}>{community.description}</Text>
             <TouchableOpacity
               style={[styles.button, isJoined && styles.buttonLeave]}
-              onPress={() => isJoined ? handleLeave(community.id) : handleJoin(community.id)}
+              onPress={(e) => {
+                e.stopPropagation();
+                isJoined ? handleLeave(community.id) : handleJoin(community.id);
+              }}
             >
               <Text style={styles.buttonText}>
                 {isJoined ? 'Leave' : 'Join'}
               </Text>
             </TouchableOpacity>
-          </View>
+          </TouchableOpacity>
         );
       })}
     </ScrollView>
