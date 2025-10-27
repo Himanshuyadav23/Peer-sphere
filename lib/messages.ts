@@ -34,12 +34,14 @@ export function listenToConversation(a: string, b: string, cb: (docs: any[]) => 
 
 export function listenToRecentConversations(uid: string, cb: (docs: any[]) => void) {
 	const db = getDb();
-	const q = query(collection(db, 'messages'), where('conversationId', '>=', ''), orderBy('timestamp', 'desc'));
+	// Fetch all messages and filter on the client side
+	const q = query(collection(db, 'messages'), orderBy('timestamp', 'desc'));
 	return onSnapshot(q, (snap) => {
 		const seen = new Set<string>();
 		const rows: any[] = [];
 		for (const d of snap.docs) {
 			const m = d.data() as any;
+			// Only include messages where the user is sender or receiver
 			if (m.senderId !== uid && m.receiverId !== uid) continue;
 			const other = m.senderId === uid ? m.receiverId : m.senderId;
 			const key = other;

@@ -14,7 +14,8 @@ export async function getTopMatches(currentUserId: string, limit = 5): Promise<A
 		if (d.id === currentUserId) return;
 		const u = d.data() as UserDoc;
 		const score = (u.interests || []).reduce((acc, it) => acc + (meInterests.has((it || '').toLowerCase()) ? 1 : 0), 0);
-		if (score > 0) scored.push({ ...(u as any), score });
+		// Include users even with score 0 to ensure matches show up
+		scored.push({ ...(u as any), score });
 	});
 	scored.sort((a, b) => b.score - a.score);
 	return scored.slice(0, limit);
@@ -64,14 +65,12 @@ export async function getSmartMatches(currentUserId: string, limit = 20): Promis
 		const actualScore = interestMatches + yearScore + batchScore;
 		const compatibilityScore = Math.round((actualScore / totalPossibleScore) * 100);
 		
-		// Only include matches with some compatibility
-		if (compatibilityScore > 10) {
-			scored.push({ 
-				...(u as any), 
-				score: interestMatches + yearScore + batchScore,
-				compatibilityScore 
-			});
-		}
+		// Include all users, not just those with compatibility > 10
+		scored.push({ 
+			...(u as any), 
+			score: interestMatches + yearScore + batchScore,
+			compatibilityScore 
+		});
 	});
 	
 	// Sort by compatibility score, then by interest matches
