@@ -21,24 +21,29 @@ export default function MatchesPage() {
 	useEffect(() => {
 		if (!me) return;
 		
-		const loadMatches = async () => {
-			setLoading(true);
-			try {
-				if (activeTab === 'smart') {
-					const smartMatches = await getSmartMatches(me);
-					setMatches(smartMatches);
-				} else {
-					const interestMatches = await getTopMatches(me, 20);
-					setMatches(interestMatches);
+		// Debounce loading to prevent rapid re-renders
+		const timeoutId = setTimeout(() => {
+			const loadMatches = async () => {
+				setLoading(true);
+				try {
+					if (activeTab === 'smart') {
+						const smartMatches = await getSmartMatches(me);
+						setMatches(smartMatches);
+					} else {
+						const interestMatches = await getTopMatches(me, 20);
+						setMatches(interestMatches);
+					}
+				} catch (error) {
+					console.error('Error loading matches:', error);
+				} finally {
+					setLoading(false);
 				}
-			} catch (error) {
-				console.error('Error loading matches:', error);
-			} finally {
-				setLoading(false);
-			}
-		};
+			};
 
-		loadMatches();
+			loadMatches();
+		}, 100);
+
+		return () => clearTimeout(timeoutId);
 	}, [me, activeTab]);
 
 	const getMatchPercentage = (score: number, maxScore: number = 5) => {
@@ -89,22 +94,24 @@ export default function MatchesPage() {
 							<div className="flex gap-2">
 								<button
 									onClick={() => setActiveTab('smart')}
+									disabled={loading}
 									className={`px-6 py-3 rounded-xl font-medium transition-all duration-300 flex items-center gap-2 ${
 										activeTab === 'smart'
 											? 'bg-gradient-to-r from-pink-500 to-purple-600 text-white shadow-lg'
 											: 'text-gray-600 hover:text-gray-900'
-									}`}
+									} ${loading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
 								>
 									<Zap className="w-4 h-4" />
 									Smart Match
 								</button>
 								<button
 									onClick={() => setActiveTab('interests')}
+									disabled={loading}
 									className={`px-6 py-3 rounded-xl font-medium transition-all duration-300 flex items-center gap-2 ${
 										activeTab === 'interests'
 											? 'bg-gradient-to-r from-pink-500 to-purple-600 text-white shadow-lg'
 											: 'text-gray-600 hover:text-gray-900'
-									}`}
+									} ${loading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
 								>
 									<Heart className="w-4 h-4" />
 									By Interests

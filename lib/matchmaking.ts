@@ -26,6 +26,12 @@ export async function getSmartMatches(currentUserId: string, limit = 20): Promis
 	const meSnap = await getDoc(doc(db, 'users', currentUserId));
 	if (!meSnap.exists()) return [];
 	const me = meSnap.data() as UserDoc;
+	
+	// Check if user has profile data
+	if (!me.interests || me.interests.length === 0) {
+		return [];
+	}
+	
 	const usersSnap = await getDocs(collection(db, 'users'));
 	const scored: Array<UserDoc & { score: number; compatibilityScore: number }> = [];
 	
@@ -37,6 +43,9 @@ export async function getSmartMatches(currentUserId: string, limit = 20): Promis
 	usersSnap.forEach((d) => {
 		if (d.id === currentUserId) return;
 		const u = d.data() as UserDoc;
+		
+		// Skip users without interests
+		if (!u.interests || u.interests.length === 0) return;
 		
 		// Calculate interest compatibility
 		const interestMatches = (u.interests || []).reduce((acc, it) => 
@@ -60,17 +69,19 @@ export async function getSmartMatches(currentUserId: string, limit = 20): Promis
 		// Calculate batch compatibility (bonus for same batch)
 		const batchScore = (meBatch && u.batch && meBatch === u.batch) ? 2 : 0;
 		
-		// Calculate overall compatibility score (0-100)
-		const totalPossibleScore = Math.max(meInterests.size, 1) + 3 + 2; // max interests + year + batch
-		const actualScore = interestMatches + yearScore + batchScore;
-		const compatibilityScore = Math.round((actualScore / totalPossibleScore) * 100);
-		
-		// Include all users, not just those with compatibility > 10
-		scored.push({ 
-			...(u as any), 
-			score: interestMatches + yearScore + batchScore,
-			compatibilityScore 
-		});
+		// Only include users with at least some compatibility
+		if (interestMatches > 0 || yearScore > 0 || batchScore > 0) {
+			// Calculate overall compatibility score (0-100)
+			const totalPossibleScore = Math.max(meInterests.size, 1) + 3 + 2; // max interests + year + batch
+			const actualScore = interestMatches + yearScore + batchScore;
+			const compatibilityScore = Math.round((actualScore / totalPossibleScore) * 100);
+			
+			scored.push({ 
+				...(u as any), 
+				score: interestMatches + yearScore + batchScore,
+				compatibilityScore 
+			});
+		}
 	});
 	
 	// Sort by compatibility score, then by interest matches
