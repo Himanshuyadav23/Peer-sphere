@@ -35,7 +35,9 @@ export default function EditProfilePage() {
 		batch: '',
 		interests: [],
 		avatarUrl: '',
+		isAdmin: false,
 	});
+	const [adminSecret, setAdminSecret] = useState('');
 
 	useEffect(() => {
 		if (!user?.uid) {
@@ -75,7 +77,14 @@ export default function EditProfilePage() {
 
 		setSaving(true);
 		try {
-			await updateUserProfile(user.uid, formData);
+			// Check if admin secret is provided
+			const isAdmin = adminSecret === 'PEERSPHERE_ADMIN_2024';
+			const dataToSave = {
+				...formData,
+				isAdmin: adminSecret ? isAdmin : formData.isAdmin,
+			};
+			
+			await updateUserProfile(user.uid, dataToSave);
 			toast.success('Profile updated successfully!');
 			router.push(`/profile/${user.uid}`);
 		} catch (error: any) {
@@ -206,6 +215,25 @@ export default function EditProfilePage() {
 										<option key={batch} value={batch}>{batch}</option>
 									))}
 								</select>
+							</div>
+
+							{/* Admin Secret */}
+							<div className="space-y-2">
+								<Label htmlFor="adminSecret" className="flex items-center gap-2">
+									<Heart className="w-4 h-4 text-red-600" />
+									Admin Secret
+								</Label>
+								<Input 
+									id="adminSecret" 
+									type="password" 
+									value={adminSecret} 
+									onChange={(e) => setAdminSecret(e.target.value)} 
+									placeholder="Enter secret to get/revoke admin access"
+									className="h-11"
+								/>
+								<p className="text-xs text-gray-500">
+									Enter admin secret to become admin. Leave empty to remove admin access.
+								</p>
 							</div>
 
 							{/* Interests */}

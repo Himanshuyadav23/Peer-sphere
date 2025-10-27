@@ -19,6 +19,7 @@ export default function ProfileSetupPage() {
 	const [year, setYear] = useState<'1st' | '2nd' | '3rd' | 'MCA' | ''>('');
 	const [batch, setBatch] = useState('');
 	const [interests, setInterests] = useState('');
+	const [adminSecret, setAdminSecret] = useState('');
 	const [saving, setSaving] = useState(false);
 
 	async function onSubmit(e: React.FormEvent) {
@@ -31,6 +32,8 @@ export default function ProfileSetupPage() {
 		setSaving(true);
 		try {
 			console.log('Saving profile for user:', user.uid);
+			const isAdmin = adminSecret === 'PEERSPHERE_ADMIN_2024';
+			
 			const profileData = {
 				uid: user.uid,
 				name,
@@ -38,6 +41,7 @@ export default function ProfileSetupPage() {
 				year,
 				batch,
 				interests: interests.split(',').map((s) => s.trim()).filter(Boolean),
+				isAdmin: isAdmin || false,
 				updatedAt: serverTimestamp(),
 			};
 			console.log('Profile data:', profileData);
@@ -83,6 +87,17 @@ export default function ProfileSetupPage() {
 					<div className="space-y-2">
 						<Label htmlFor="interests">Skills/Interests</Label>
 						<Input id="interests" placeholder="e.g. React, ML, UI/UX" value={interests} onChange={(e) => setInterests(e.target.value)} />
+					</div>
+					<div className="space-y-2">
+						<Label htmlFor="adminSecret">Admin Secret (Optional)</Label>
+						<Input 
+							id="adminSecret" 
+							type="password" 
+							placeholder="Enter admin secret to become admin" 
+							value={adminSecret} 
+							onChange={(e) => setAdminSecret(e.target.value)} 
+						/>
+						<p className="text-xs text-gray-500">Leave empty for regular user</p>
 					</div>
 					<Button type="submit" disabled={saving}>{saving ? 'Saving...' : 'Save'}</Button>
 				</form>
