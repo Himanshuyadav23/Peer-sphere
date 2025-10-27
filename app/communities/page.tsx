@@ -35,11 +35,13 @@ export default function CommunitiesListPage() {
 	useEffect(() => {
 		const q = query(
 			collection(getDb(), 'communities'),
-			where('deleted', '!=', true),
 			orderBy('createdAt', 'desc')
 		);
 		const unsub = onSnapshot(q, (snap) => {
-			setCommunities(snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) } as Community)));
+			const allCommunities = snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) } as Community));
+			// Filter out deleted communities on the client side
+			const activeCommunities = allCommunities.filter(community => !community.deleted);
+			setCommunities(activeCommunities);
 		}, (error) => {
 			console.error('Error fetching communities:', error);
 		});

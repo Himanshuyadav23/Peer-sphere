@@ -1,9 +1,11 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Users can read and write their own user document
+    // Users - allow users to read all (for matching), create their own user document, update/delete their own
     match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read: if request.auth != null;
+      allow create: if request.auth != null && (request.auth.uid == userId || request.auth.uid == request.resource.data.uid);
+      allow update, delete: if request.auth != null && request.auth.uid == userId;
     }
     
     // Communities - authenticated users can read all, create new ones, and update if they're the creator
@@ -31,6 +33,12 @@ service cloud.firestore {
       allow read, write: if request.auth != null && 
         (request.auth.uid == resource.data.senderId || 
          request.auth.uid == resource.data.receiverId);
+    }
+    
+    // Notifications - users can read their own notifications
+    match /notifications/{notificationId} {
+      allow read: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow write: if request.auth != null;
     }
   }
 }

@@ -6,6 +6,7 @@ export type UserDoc = {
 	batch: string;
 	interests: string[];
 	avatarUrl: string;
+	isAdmin?: boolean;
 	createdAt?: any;
 	updatedAt?: any;
 };

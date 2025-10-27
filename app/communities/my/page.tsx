@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { collection, onSnapshot, query, where } from 'firebase/firestore';
+import { collection, onSnapshot, query, where, orderBy } from 'firebase/firestore';
 import { getDb, getFirebaseAuth } from '@/lib/firebase';
 import type { Community } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,57 +10,102 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Users, Calendar, Plus, Settings, Crown } from 'lucide-react';
+import PageLayout from '@/components/page-layout';
 
 export default function MyCommunitiesPage() {
 	const auth = getFirebaseAuth();
 	const [myCommunities, setMyCommunities] = useState<Community[]>([]);
+	const [allCommunities, setAllCommunities] = useState<Community[]>([]);
+	const [activeTab, setActiveTab] = useState<'my' | 'all'>('my');
 	const [loading, setLoading] = useState(true);
 	const uid = auth.currentUser?.uid;
 
 	useEffect(() => {
 		if (!uid) return;
 
-		const q = query(
+		// Load my communities
+		const q1 = query(
 			collection(getDb(), 'communities'),
 			where('members', 'array-contains', uid),
-			where('deleted', '!=', true)
+			orderBy('createdAt', 'desc')
 		);
 		
-		const unsub = onSnapshot(q, (snap) => {
-			setMyCommunities(snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) } as Community)));
+		const unsub1 = onSnapshot(q1, (snap) => {
+			const communities = snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) } as Community));
+			setMyCommunities(communities.filter(c => !c.deleted));
+		}, (error) => {
+			console.error('Error loading my communities:', error);
+		});
+
+		// Load all communities
+		const q2 = query(
+			collection(getDb(), 'communities'),
+			orderBy('createdAt', 'desc')
+		);
+
+		const unsub2 = onSnapshot(q2, (snap) => {
+			const communities = snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) } as Community));
+			setAllCommunities(communities.filter(c => !c.deleted));
+			setLoading(false);
+		}, (error) => {
+			console.error('Error loading all communities:', error);
 			setLoading(false);
 		});
 		
-		return () => unsub();
+		return () => {
+			unsub1();
+			unsub2();
+		};
 	}, [uid]);
 
-	if (loading) {
-		return (
-			<div className="flex items-center justify-center min-h-[400px]">
-				<div className="text-center">
-					<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-					<p className="text-muted-foreground">Loading your communities...</p>
-				</div>
-			</div>
-		);
-	}
-
 	return (
-		<div className="space-y-6">
-			<div className="flex items-center justify-between">
-				<div>
-					<h1 className="text-3xl font-bold">My Communities</h1>
-					<p className="text-muted-foreground">Manage and explore your communities</p>
-				</div>
+		<PageLayout 
+			title="My Communities" 
+			description="Manage and explore your communities"
+			showBack={false}
+			action={
 				<Link href="/communities/create">
-					<Button className="gap-2">
+					<Button className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white gap-2">
 						<Plus className="h-4 w-4" />
 						Create Community
 					</Button>
 				</Link>
+			}
+		>
+			{/* Tab Navigation */}
+			<div className="bg-white/80 backdrop-blur-sm rounded-2xl p-2 shadow-xl border border-white/20">
+				<div className="flex gap-2">
+					<button
+						onClick={() => setActiveTab('my')}
+						className={`flex-1 px-6 py-3 rounded-xl font-medium transition-all duration-300 flex items-center justify-center gap-2 ${
+							activeTab === 'my'
+								? 'bg-gradient-to-r from-pink-500 to-purple-600 text-white shadow-lg'
+								: 'text-gray-600 hover:text-gray-900'
+						}`}
+					>
+						<Users className="w-4 h-4" />
+						My Communities ({myCommunities.length})
+					</button>
+					<button
+						onClick={() => setActiveTab('all')}
+						className={`flex-1 px-6 py-3 rounded-xl font-medium transition-all duration-300 flex items-center justify-center gap-2 ${
+							activeTab === 'all'
+								? 'bg-gradient-to-r from-pink-500 to-purple-600 text-white shadow-lg'
+								: 'text-gray-600 hover:text-gray-900'
+						}`}
+					>
+						<Crown className="w-4 h-4" />
+						All Communities ({allCommunities.length})
+					</button>
+				</div>
 			</div>
 
-			{myCommunities.length === 0 ? (
+			{loading ? (
+				<div className="text-center py-12">
+					<div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+					<p className="text-muted-foreground">Loading communities...</p>
+				</div>
+			) : activeTab === 'my' && myCommunities.length === 0 ? (
 				<div className="rounded-lg border-2 border-dashed border-muted-foreground/25 p-12 text-center">
 					<div className="mx-auto mb-4 h-12 w-12 rounded-full bg-muted flex items-center justify-center">
 						<Users className="h-6 w-6 text-muted-foreground" />
@@ -83,7 +128,7 @@ export default function MyCommunitiesPage() {
 				</div>
 			) : (
 				<div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-					{myCommunities.map((community) => (
+					{(activeTab === 'my' ? myCommunities : allCommunities).map((community) => (
 						<Card key={community.id} className="hover:shadow-md transition-shadow">
 							<CardHeader>
 								<div className="flex items-start justify-between">
@@ -144,7 +189,7 @@ export default function MyCommunitiesPage() {
 			)}
 
 			{/* Quick Actions */}
-			{myCommunities.length > 0 && (
+			{activeTab === 'my' && myCommunities.length > 0 && (
 				<Card>
 					<CardHeader>
 						<CardTitle>Quick Actions</CardTitle>
@@ -173,7 +218,7 @@ export default function MyCommunitiesPage() {
 					</CardContent>
 				</Card>
 			)}
-		</div>
+		</PageLayout>
 	);
 }
 

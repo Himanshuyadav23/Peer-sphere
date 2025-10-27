@@ -3,7 +3,7 @@ import { ReactNode } from 'react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { Menu, Plus, Home, Users, Calendar, MessageCircle, Heart, Sparkles } from 'lucide-react';
+import { Menu, Plus, Home, Users, Calendar, MessageCircle, Heart, Sparkles, Shield } from 'lucide-react';
 import AuthGate from '@/components/auth-gate';
 import NotificationsBell from '@/components/notifications-bell';
 import PageTransition from '@/components/page-transition';
@@ -42,6 +42,9 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
 						<NavLink href="/events" icon={<Calendar className="w-5 h-5" />}>Events</NavLink>
 						<NavLink href="/messages" icon={<MessageCircle className="w-5 h-5" />}>Messages</NavLink>
 						<NavLink href="/matches" icon={<Heart className="w-5 h-5" />}>Matches</NavLink>
+						<div className="pt-4 mt-4 border-t border-white/20">
+							<NavLink href="/admin" icon={<Shield className="w-5 h-5" />}>Admin Panel</NavLink>
+						</div>
 					</nav>
 				</aside>
 				<div className="flex min-h-dvh flex-col bg-white/40 backdrop-blur-sm">
@@ -80,6 +83,9 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
 									<NavLink href="/events" icon={<Calendar className="w-5 h-5" />}>Events</NavLink>
 									<NavLink href="/messages" icon={<MessageCircle className="w-5 h-5" />}>Messages</NavLink>
 									<NavLink href="/matches" icon={<Heart className="w-5 h-5" />}>Matches</NavLink>
+									<div className="pt-4 mt-4 border-t border-white/20">
+										<NavLink href="/admin" icon={<Shield className="w-5 h-5" />}>Admin Panel</NavLink>
+									</div>
 								</nav>
 							</SheetContent>
 						</Sheet>
