@@ -57,9 +57,15 @@ export default function CommunityDetailPage() {
 		if (!uid || !id) return;
 		setLoading(true);
 		try {
-			if (isMember) await leaveCommunity(id, uid);
-			else await joinCommunity(id, uid);
+			if (isMember) {
+				await leaveCommunity(id, uid);
+				toast.success('Left community successfully');
+			} else {
+				await joinCommunity(id, uid);
+				toast.success('Joined community successfully');
+			}
 		} catch (e: any) {
+			console.error('Error toggling membership:', e);
 			toast.error(e.message || 'Failed');
 		} finally {
 			setLoading(false);
@@ -84,110 +90,123 @@ export default function CommunityDetailPage() {
 	}
 
 	if (!community) return (
-		<div className="flex items-center justify-center min-h-[400px]">
+		<div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-100 flex items-center justify-center">
 			<div className="text-center">
-				<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+				<div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
 				<p className="text-muted-foreground">Loading community...</p>
 			</div>
 		</div>
 	);
 
 	return (
-		<div className="space-y-6">
+		<div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-100 p-6">
+			<div className="max-w-6xl mx-auto space-y-6">
 			{/* Header */}
-			<div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-				<div className="space-y-2">
-					<div className="flex items-center gap-3">
-						<Avatar className="h-16 w-16">
-							<AvatarFallback className="text-lg">
-								{community.name.substring(0, 2).toUpperCase()}
-							</AvatarFallback>
-						</Avatar>
-						<div>
-							<h1 className="text-3xl font-bold">{community.name}</h1>
-							<Badge variant="secondary">{community.category}</Badge>
+			<div className="bg-white/80 backdrop-blur-sm border-white/20 shadow-xl rounded-2xl p-8">
+				<div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
+					<div className="space-y-3">
+						<div className="flex items-center gap-3">
+							<Avatar className="h-16 w-16 border-2 border-white shadow-lg">
+								<AvatarFallback className="text-lg bg-gradient-to-br from-pink-500 to-purple-600 text-white">
+									{community.name.substring(0, 2).toUpperCase()}
+								</AvatarFallback>
+							</Avatar>
+							<div>
+								<h1 className="text-3xl font-bold text-gray-800">{community.name}</h1>
+								<Badge variant="secondary" className="bg-pink-100 text-pink-700 border-pink-200">
+									{community.category}
+								</Badge>
+							</div>
 						</div>
+						<p className="text-lg text-gray-600 max-w-2xl leading-relaxed">{community.description}</p>
 					</div>
-					<p className="text-lg text-muted-foreground max-w-2xl">{community.description}</p>
-				</div>
 				
-				<div className="flex flex-col gap-2 sm:flex-row">
-					{isCreator && (
-						<>
-							<Link href={`/communities/${id}/settings`}>
-								<Button variant="outline" size="sm" className="gap-2">
-									<Edit className="h-4 w-4" />
-									Edit
+					<div className="flex flex-col gap-3 sm:flex-row">
+						{isCreator && (
+							<>
+								<Link href={`/communities/${id}/settings`}>
+									<Button variant="outline" size="default" className="gap-2 border-2 hover:bg-gray-50">
+										<Edit className="h-4 w-4" />
+										Edit Community
+									</Button>
+								</Link>
+								<Button 
+									variant="destructive" 
+									size="default" 
+									onClick={handleDelete}
+									disabled={loading}
+									className="gap-2"
+								>
+									<Trash2 className="h-4 w-4" />
+									Delete
 								</Button>
-							</Link>
-							<Button 
-								variant="destructive" 
-								size="sm" 
-								onClick={handleDelete}
-								disabled={loading}
-								className="gap-2"
-							>
-								<Trash2 className="h-4 w-4" />
-								Delete
-							</Button>
-						</>
-					)}
-					<Button 
-						onClick={onToggle} 
-						disabled={loading}
-						variant={isMember ? "outline" : "default"}
-						className="gap-2"
-					>
-						{isMember ? (
-							<>
-								<Users className="h-4 w-4" />
-								Leave Community
-							</>
-						) : (
-							<>
-								<Plus className="h-4 w-4" />
-								Join Community
 							</>
 						)}
-					</Button>
+						<Button 
+							onClick={onToggle} 
+							disabled={loading}
+							className={isMember 
+								? "gap-2 border-2 border-red-300 hover:bg-red-50 text-red-700" 
+								: "gap-2 bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white shadow-lg"
+							}
+						>
+							{isMember ? (
+								<>
+									<Users className="h-4 w-4" />
+									Leave Community
+								</>
+							) : (
+								<>
+									<Plus className="h-4 w-4" />
+									Join Community
+								</>
+							)}
+						</Button>
+					</div>
 				</div>
 			</div>
 
 			{/* Stats */}
-			<div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-				<Card>
+			<div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
+				<Card className="bg-white/80 backdrop-blur-sm border-white/20 shadow-xl">
 					<CardContent className="p-6">
-						<div className="flex items-center gap-2">
-							<Users className="h-5 w-5 text-primary" />
+						<div className="flex items-center gap-3">
+							<div className="p-3 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-xl">
+								<Users className="h-6 w-6 text-white" />
+							</div>
 							<div>
-								<p className="text-2xl font-bold">{community.members?.length || 0}</p>
-								<p className="text-sm text-muted-foreground">Members</p>
+								<p className="text-3xl font-bold text-gray-800">{community.members?.length || 0}</p>
+								<p className="text-sm text-gray-600">Members</p>
 							</div>
 						</div>
 					</CardContent>
 				</Card>
 				
-				<Card>
+				<Card className="bg-white/80 backdrop-blur-sm border-white/20 shadow-xl">
 					<CardContent className="p-6">
-						<div className="flex items-center gap-2">
-							<Calendar className="h-5 w-5 text-primary" />
+						<div className="flex items-center gap-3">
+							<div className="p-3 bg-gradient-to-br from-pink-500 to-purple-600 rounded-xl">
+								<Calendar className="h-6 w-6 text-white" />
+							</div>
 							<div>
-								<p className="text-2xl font-bold">
+								<p className="text-lg font-bold text-gray-800">
 									{community.createdAt ? new Date(community.createdAt.seconds * 1000).toLocaleDateString() : 'N/A'}
 								</p>
-								<p className="text-sm text-muted-foreground">Created</p>
+								<p className="text-sm text-gray-600">Created</p>
 							</div>
 						</div>
 					</CardContent>
 				</Card>
 
-				<Card>
+				<Card className="bg-white/80 backdrop-blur-sm border-white/20 shadow-xl">
 					<CardContent className="p-6">
-						<div className="flex items-center gap-2">
-							<Settings className="h-5 w-5 text-primary" />
+						<div className="flex items-center gap-3">
+							<div className="p-3 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl">
+								<Settings className="h-6 w-6 text-white" />
+							</div>
 							<div>
-								<p className="text-2xl font-bold">{isCreator ? 'Admin' : 'Member'}</p>
-								<p className="text-sm text-muted-foreground">Your Role</p>
+								<p className="text-2xl font-bold text-gray-800">{isCreator ? 'Admin' : 'Member'}</p>
+								<p className="text-sm text-gray-600">Your Role</p>
 							</div>
 						</div>
 					</CardContent>
@@ -195,7 +214,7 @@ export default function CommunityDetailPage() {
 			</div>
 
 			{/* Members Section */}
-			<Card>
+			<Card className="bg-white/80 backdrop-blur-sm border-white/20 shadow-xl">
 				<CardHeader>
 					<div className="flex items-center justify-between">
 						<CardTitle className="flex items-center gap-2">
@@ -247,6 +266,7 @@ export default function CommunityDetailPage() {
 					)}
 				</CardContent>
 			</Card>
+			</div>
 		</div>
 	);
 }
