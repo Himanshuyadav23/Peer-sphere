@@ -21,13 +21,19 @@ const INTEREST_OPTIONS = [
 ];
 
 const COURSE_OPTIONS = [
-	'M.Sc. Computer Science',
-	'M.Sc. Bioinformatics',
-	'M.Sc. Data Science',
-	'PG Diploma in Computer Applications',
+	'BCA',
+	'M.Sc. (Integrated) Cyber Security',
+	'MCA',
+	'M.Sc. (Computer Science)',
+	'M.Sc. (Information Technology)',
+	'MBA (Computer Management)',
+	'PGDCA',
+	'M.Tech (Computer Science)',
+	'M.Tech (Information Architecture & Software Engineering)',
+	'M.Tech (Network Management & Information Security)',
 	'Other'
 ];
-const YEAR_OPTIONS = ['1st', '2nd', '3rd', 'MCA', 'PG Diploma'] as const;
+const YEAR_OPTIONS = ['1st', '2nd', '3rd', '4th', '5th'] as const;
 const BATCH_OPTIONS = ['2021', '2022', '2023', '2024', '2025'];
 
 export default function EditProfilePage() {

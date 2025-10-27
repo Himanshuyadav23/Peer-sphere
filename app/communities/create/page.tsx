@@ -24,10 +24,16 @@ const communitySchema = z.object({
 type CommunityFormData = z.infer<typeof communitySchema>;
 
 const categories = [
-	'M.Sc. Computer Science',
-	'M.Sc. Bioinformatics',
-	'M.Sc. Data Science',
-	'PG Diploma in Computer Applications',
+	'BCA',
+	'M.Sc. (Integrated) Cyber Security',
+	'MCA',
+	'M.Sc. (Computer Science)',
+	'M.Sc. (Information Technology)',
+	'MBA (Computer Management)',
+	'PGDCA',
+	'M.Tech (Computer Science)',
+	'M.Tech (Information Architecture & Software Engineering)',
+	'M.Tech (Network Management & Information Security)',
 	'Academic',
 	'Technology',
 	'Sports',

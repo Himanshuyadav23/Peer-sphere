@@ -44,7 +44,7 @@ export async function getSmartMatches(currentUserId: string, limit = 20): Promis
 		// Calculate year compatibility (prefer same year, then adjacent years)
 		let yearScore = 0;
 		if (meYear && u.year) {
-			const yearOrder = ['1st', '2nd', '3rd', 'MCA'];
+			const yearOrder = ['1st', '2nd', '3rd', '4th', '5th'];
 			const meYearIndex = yearOrder.indexOf(meYear);
 			const uYearIndex = yearOrder.indexOf(u.year);
 			

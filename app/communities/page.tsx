@@ -13,10 +13,16 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Users, Calendar, Plus } from 'lucide-react';
 
 const categories = [
-	'M.Sc. Computer Science',
-	'M.Sc. Bioinformatics',
-	'M.Sc. Data Science',
-	'PG Diploma in Computer Applications',
+	'BCA',
+	'M.Sc. (Integrated) Cyber Security',
+	'MCA',
+	'M.Sc. (Computer Science)',
+	'M.Sc. (Information Technology)',
+	'MBA (Computer Management)',
+	'PGDCA',
+	'M.Tech (Computer Science)',
+	'M.Tech (Information Architecture & Software Engineering)',
+	'M.Tech (Network Management & Information Security)',
 	'Academic',
 	'Technology',
 	'Sports',

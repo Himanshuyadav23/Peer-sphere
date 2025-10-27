@@ -16,7 +16,7 @@ export default function ProfileSetupPage() {
 	const auth = getFirebaseAuth();
 	const db = getDb();
 	const [name, setName] = useState('');
-	const [year, setYear] = useState<'1st' | '2nd' | '3rd' | 'MCA' | 'PG Diploma' | ''>('');
+	const [year, setYear] = useState<'1st' | '2nd' | '3rd' | '4th' | '5th' | ''>('');
 	const [course, setCourse] = useState('');
 	const [batch, setBatch] = useState('');
 	const [interests, setInterests] = useState('');
@@ -24,10 +24,16 @@ export default function ProfileSetupPage() {
 	const [saving, setSaving] = useState(false);
 
 	const COURSE_OPTIONS = [
-		'M.Sc. Computer Science',
-		'M.Sc. Bioinformatics',
-		'M.Sc. Data Science',
-		'PG Diploma in Computer Applications',
+		'BCA',
+		'M.Sc. (Integrated) Cyber Security',
+		'MCA',
+		'M.Sc. (Computer Science)',
+		'M.Sc. (Information Technology)',
+		'MBA (Computer Management)',
+		'PGDCA',
+		'M.Tech (Computer Science)',
+		'M.Tech (Information Architecture & Software Engineering)',
+		'M.Tech (Network Management & Information Security)',
 		'Other'
 	];
 
@@ -97,8 +103,8 @@ export default function ProfileSetupPage() {
 								<SelectItem value="1st">1st Year</SelectItem>
 								<SelectItem value="2nd">2nd Year</SelectItem>
 								<SelectItem value="3rd">3rd Year</SelectItem>
-								<SelectItem value="MCA">MCA</SelectItem>
-								<SelectItem value="PG Diploma">PG Diploma</SelectItem>
+								<SelectItem value="4th">4th Year</SelectItem>
+								<SelectItem value="5th">5th Year</SelectItem>
 							</SelectContent>
 						</Select>
 					</div>

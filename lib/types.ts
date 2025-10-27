@@ -2,7 +2,7 @@ export type UserDoc = {
 	uid: string;
 	name: string;
 	email: string | null;
-	year: '1st' | '2nd' | '3rd' | 'MCA' | 'PG Diploma' | '';
+	year: '1st' | '2nd' | '3rd' | '4th' | '5th' | '';
 	batch: string;
 	course?: string; // Optional course field
 	interests: string[];
