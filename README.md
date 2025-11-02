@@ -81,4 +81,31 @@ The easiest way to deploy your Next.js app is to use the [Vercel Platform](https
 
 ### Mobile App
 
-Build for production using [Expo Application Services (EAS)](https://docs.expo.dev/build/introduction/).
+Choose your deployment method:
+
+#### 🆓 FREE Deployment (Recommended for Start)
+
+**Get live in 30 minutes for FREE!**
+
+Quick Start:
+1. Read: [GET_LIVE_NOW.md](./GET_LIVE_NOW.md) - 30 minute guide
+2. Build APK: `eas build --platform android --profile preview`
+3. Upload to [GitHub Releases](./GITHUB_RELEASES_GUIDE.md)
+4. Share link!
+
+Detailed Guides:
+- 📦 [GitHub Releases Guide](./GITHUB_RELEASES_GUIDE.md) - Complete tutorial
+- 🆓 [Free Deployment Options](./FREE_DEPLOYMENT.md) - All free methods
+- 📋 [Summary](./SUMMARY.md) - Quick reference
+
+#### 💰 Paid Deployment
+
+For official app stores:
+- 📘 [Quick Deploy Guide](./QUICK_DEPLOY.md) - Fast paid deployment
+- 📖 [Full Deployment Guide](./MOBILE_DEPLOYMENT.md) - Complete reference
+
+**Costs:**
+- Android (Google Play): $25 one-time
+- iOS (App Store): $99/year
+
+**Recommended**: Start with free GitHub Releases, then move to app stores!
