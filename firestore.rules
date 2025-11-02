@@ -1,11 +1,17 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    // Helper function to check if user is admin
+    function isAdmin() {
+      return request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+    }
+    
     // Users - allow users to read all (for matching), create their own user document, update/delete their own
+    // Admins can update any user
     match /users/{userId} {
       allow read: if request.auth != null;
       allow create: if request.auth != null && (request.auth.uid == userId || request.auth.uid == request.resource.data.uid);
-      allow update, delete: if request.auth != null && request.auth.uid == userId;
+      allow update, delete: if request.auth != null && (request.auth.uid == userId || isAdmin());
     }
     
     // Communities - authenticated users can read all, create new ones, and update if they're the creator

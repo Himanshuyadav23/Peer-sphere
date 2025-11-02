@@ -176,7 +176,7 @@ export default function AdminPanel() {
 			}
 		>
 			{/* Stats Grid */}
-			<div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+			<div id="analytics-section" className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
 				<Card className="bg-gradient-to-br from-blue-500 to-cyan-600 text-white">
 					<CardContent className="pt-6">
 						<div className="flex items-center justify-between">
@@ -314,19 +314,22 @@ export default function AdminPanel() {
 				</CardHeader>
 				<CardContent>
 					<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-						<Button variant="outline" className="h-auto flex-col gap-2 py-6">
+						<Button variant="outline" className="h-auto flex-col gap-2 py-6" onClick={() => router.push('/admin/users')}>
 							<Users className="w-8 h-8 text-blue-600" />
 							<span>Manage Users</span>
 						</Button>
-						<Button variant="outline" className="h-auto flex-col gap-2 py-6">
+						<Button variant="outline" className="h-auto flex-col gap-2 py-6" disabled>
 							<Shield className="w-8 h-8 text-purple-600" />
 							<span>Content Moderation</span>
 						</Button>
-						<Button variant="outline" className="h-auto flex-col gap-2 py-6">
+						<Button variant="outline" className="h-auto flex-col gap-2 py-6" onClick={() => {
+							const analyticsSection = document.getElementById('analytics-section');
+							analyticsSection?.scrollIntoView({ behavior: 'smooth' });
+						}}>
 							<TrendingUp className="w-8 h-8 text-green-600" />
 							<span>View Analytics</span>
 						</Button>
-						<Button variant="outline" className="h-auto flex-col gap-2 py-6">
+						<Button variant="outline" className="h-auto flex-col gap-2 py-6" onClick={() => router.push('/admin/users')}>
 							<Ban className="w-8 h-8 text-red-600" />
 							<span>Ban Users</span>
 						</Button>

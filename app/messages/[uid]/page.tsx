@@ -10,7 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { doc, getDoc } from 'firebase/firestore';
-import { ArrowLeft, Send, MoreVertical, Phone, Video, Heart, Smile } from 'lucide-react';
+import { ArrowLeft, Send, Heart, Smile } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function ChatPage() {
@@ -150,17 +150,6 @@ export default function ChatPage() {
 								</div>
 							</div>
 						</div>
-					</div>
-					<div className="flex items-center gap-2">
-						<Button variant="ghost" size="sm" className="w-8 h-8 p-0">
-							<Phone className="w-4 h-4" />
-						</Button>
-						<Button variant="ghost" size="sm" className="w-8 h-8 p-0">
-							<Video className="w-4 h-4" />
-						</Button>
-						<Button variant="ghost" size="sm" className="w-8 h-8 p-0">
-							<MoreVertical className="w-4 h-4" />
-						</Button>
 					</div>
 				</div>
 			</div>

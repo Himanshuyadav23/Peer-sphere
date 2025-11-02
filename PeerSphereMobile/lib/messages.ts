@@ -8,6 +8,8 @@ function getConversationId(a: string, b: string) {
 export async function sendMessage(senderId: string, receiverId: string, text: string) {
   const db = getDb();
   const conversationId = getConversationId(senderId, receiverId);
+  
+  // Create message
   await addDoc(collection(db, 'messages'), {
     conversationId,
     senderId,
@@ -16,13 +18,19 @@ export async function sendMessage(senderId: string, receiverId: string, text: st
     timestamp: serverTimestamp(),
   });
   
-  await addDoc(collection(db, 'notifications'), {
-    userId: receiverId,
-    type: 'dm',
-    message: text,
-    link: `/messages/${senderId}`,
-    timestamp: serverTimestamp(),
-  });
+  // Create notification for receiver (skip if it fails)
+  try {
+    await addDoc(collection(db, 'notifications'), {
+      userId: receiverId,
+      type: 'dm',
+      message: text,
+      link: `/messages/${senderId}`,
+      timestamp: serverTimestamp(),
+    });
+  } catch (error) {
+    console.error('Failed to create notification:', error);
+    // Don't throw - message was sent successfully
+  }
 }
 
 export function listenToConversation(a: string, b: string, cb: (docs: any[]) => void) {
@@ -38,12 +46,14 @@ export function listenToConversation(a: string, b: string, cb: (docs: any[]) => 
 
 export function listenToRecentConversations(uid: string, cb: (docs: any[]) => void) {
   const db = getDb();
-  const q = query(collection(db, 'messages'), where('conversationId', '>=', ''), orderBy('timestamp', 'desc'));
+  // Fetch all messages and filter on the client side
+  const q = query(collection(db, 'messages'), orderBy('timestamp', 'desc'));
   return onSnapshot(q, (snap) => {
     const seen = new Set<string>();
     const rows: any[] = [];
     for (const d of snap.docs) {
       const m = d.data() as any;
+      // Only include messages where the user is sender or receiver
       if (m.senderId !== uid && m.receiverId !== uid) continue;
       const other = m.senderId === uid ? m.receiverId : m.senderId;
       const key = other;
@@ -55,6 +65,7 @@ export function listenToRecentConversations(uid: string, cb: (docs: any[]) => vo
     cb(rows);
   });
 }
+
 
 
 

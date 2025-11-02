@@ -1,4 +1,4 @@
-import { StyleSheet, View, Text, TextInput, TouchableOpacity, ActivityIndicator, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
+import { StyleSheet, View, Text, TextInput, TouchableOpacity, ActivityIndicator, ScrollView, KeyboardAvoidingView, Platform, Alert } from 'react-native';
 import { useEffect, useState, useRef } from 'react';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { onAuthChange } from '@/lib/auth';
@@ -18,44 +18,46 @@ export default function ChatScreen() {
   const scrollViewRef = useRef<ScrollView>(null);
 
   useEffect(() => {
+    let messageUnsubscribe: (() => void) | undefined;
+
     const unsubscribe = onAuthChange(async (currentUser) => {
       if (!currentUser) {
         router.replace('/(auth)/login');
         return;
       }
       setUser(currentUser);
-      await loadChat(currentUser.uid);
+      
+      try {
+        setLoading(true);
+        
+        // Load other user data
+        const userSnap = await getDoc(doc(getDb(), 'users', otherId));
+        if (userSnap.exists()) {
+          setOtherUser(userSnap.data());
+        }
+
+        // Listen to messages
+        messageUnsubscribe = listenToConversation(currentUser.uid, otherId, (msgs) => {
+          setMessages(msgs);
+          setLoading(false);
+          // Auto-scroll to bottom
+          setTimeout(() => {
+            scrollViewRef.current?.scrollToEnd({ animated: true });
+          }, 100);
+        });
+      } catch (error) {
+        console.error('Error loading chat:', error);
+        setLoading(false);
+      }
     });
 
-    return () => unsubscribe();
-  }, []);
-
-  async function loadChat(myId: string) {
-    try {
-      setLoading(true);
-      
-      // Load other user data
-      const userSnap = await getDoc(doc(getDb(), 'users', otherId));
-      if (userSnap.exists()) {
-        setOtherUser(userSnap.data());
+    return () => {
+      unsubscribe();
+      if (messageUnsubscribe) {
+        messageUnsubscribe();
       }
-
-      // Listen to messages
-      const unsubscribe = listenToConversation(myId, otherId, (msgs) => {
-        setMessages(msgs);
-        setLoading(false);
-        // Auto-scroll to bottom
-        setTimeout(() => {
-          scrollViewRef.current?.scrollToEnd({ animated: true });
-        }, 100);
-      });
-
-      return unsubscribe;
-    } catch (error) {
-      console.error('Error loading chat:', error);
-      setLoading(false);
-    }
-  }
+    };
+  }, [otherId]);
 
   async function handleSend() {
     if (!text.trim() || !user?.uid || !otherId) return;
@@ -69,8 +71,15 @@ export default function ChatScreen() {
       setTimeout(() => {
         scrollViewRef.current?.scrollToEnd({ animated: true });
       }, 100);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error sending message:', error);
+      Alert.alert(
+        'Failed to send message',
+        error.message || 'Please try again later',
+        [{ text: 'OK' }]
+      );
+      // Restore message text so user can try again
+      setText(messageText);
     }
   }
 
