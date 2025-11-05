@@ -157,6 +157,7 @@ export default function EventsListPage() {
 						</Link>
 					))}
 				</div>
+				</>
 			)}
 		</PageLayout>
 	);
