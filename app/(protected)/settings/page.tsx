@@ -9,9 +9,11 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import PageLayout from '@/components/page-layout';
-import { Settings, User, Bell, Shield, LogOut, Mail, Calendar, Users, Award } from 'lucide-react';
+import { Settings, User, Bell, Shield, LogOut, Mail, Calendar, Users, Award, Lock } from 'lucide-react';
 import { toast } from 'sonner';
-import { signOut } from 'firebase/auth';
+import { signOut, reauthenticateWithCredential, updatePassword, EmailAuthProvider } from 'firebase/auth';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 export default function SettingsPage() {
 	const router = useRouter();
@@ -19,6 +21,10 @@ export default function SettingsPage() {
 	const user = auth.currentUser;
 	const [userData, setUserData] = useState<any>(null);
 	const [loading, setLoading] = useState(true);
+	const [pwLoading, setPwLoading] = useState(false);
+	const [currentPassword, setCurrentPassword] = useState('');
+	const [newPassword, setNewPassword] = useState('');
+	const [confirmPassword, setConfirmPassword] = useState('');
 
 	useEffect(() => {
 		if (!user) {
@@ -56,6 +62,44 @@ export default function SettingsPage() {
 		} catch (error) {
 			console.error('Error signing out:', error);
 			toast.error('Failed to sign out');
+		}
+	}
+
+	async function handleChangePassword() {
+		if (!user?.email) {
+			toast.error('You must be logged in to change password');
+			return;
+		}
+		if (!currentPassword || !newPassword || !confirmPassword) {
+			toast.error('Please fill all password fields');
+			return;
+		}
+		if (newPassword.length < 8) {
+			toast.error('New password must be at least 8 characters');
+			return;
+		}
+		if (newPassword !== confirmPassword) {
+			toast.error('New passwords do not match');
+			return;
+		}
+		try {
+			setPwLoading(true);
+			// Reauthenticate before sensitive operation
+			const credential = EmailAuthProvider.credential(user.email, currentPassword);
+			await reauthenticateWithCredential(user, credential);
+			await updatePassword(user, newPassword);
+			setCurrentPassword('');
+			setNewPassword('');
+			setConfirmPassword('');
+			toast.success('Password updated successfully');
+		} catch (error: any) {
+			console.error('Error changing password:', error);
+			const message = error?.code === 'auth/wrong-password' 
+				? 'Current password is incorrect'
+				: (error?.message || 'Failed to change password');
+			toast.error(message);
+		} finally {
+			setPwLoading(false);
 		}
 	}
 
@@ -123,7 +167,7 @@ export default function SettingsPage() {
 							Account Settings
 						</CardTitle>
 					</CardHeader>
-					<CardContent className="space-y-4">
+				<CardContent className="space-y-4">
 						<Button 
 							variant="ghost" 
 							className="w-full justify-start"
@@ -132,6 +176,31 @@ export default function SettingsPage() {
 							<User className="w-5 h-5 mr-3 text-gray-600" />
 							Edit Profile Information
 						</Button>
+
+					{/* Change Password */}
+					<div className="rounded-xl border border-white/30 p-4 bg-white/60">
+						<div className="flex items-center gap-2 mb-3">
+							<Lock className="w-5 h-5 text-red-600" />
+							<span className="font-semibold text-gray-800">Change Password</span>
+						</div>
+						<div className="grid gap-3 sm:grid-cols-3">
+							<div className="space-y-2">
+								<Label htmlFor="currentPassword">Current Password</Label>
+								<Input id="currentPassword" type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} placeholder="••••••••" />
+							</div>
+							<div className="space-y-2">
+								<Label htmlFor="newPassword">New Password</Label>
+								<Input id="newPassword" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="At least 8 characters" />
+							</div>
+							<div className="space-y-2">
+								<Label htmlFor="confirmPassword">Confirm New Password</Label>
+								<Input id="confirmPassword" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Repeat new password" />
+							</div>
+						</div>
+						<Button onClick={handleChangePassword} disabled={pwLoading} className="mt-3 w-full sm:w-auto">
+							{pwLoading ? 'Updating...' : 'Update Password'}
+						</Button>
+					</div>
 						<Button 
 							variant="ghost" 
 							className="w-full justify-start"

@@ -44,7 +44,10 @@
               "scheme": "peersphere"
             }
           ],
-          "category": ["BROWSABLE", "DEFAULT"]
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
         }
       ]
     },
@@ -58,6 +61,12 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "a495cf78-805a-4644-8be6-b2e36dfba5f8"
+      }
     }
   }
 }

@@ -1,9 +1,11 @@
 import { StyleSheet, ScrollView, Text, View, TouchableOpacity, TextInput, ActivityIndicator } from 'react-native';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'expo-router';
-import { getCurrentUser, onAuthChange } from '@/lib/auth';
-import { getAllCommunities, joinCommunity, leaveCommunity, getMyCommunities } from '@/lib/communities';
+import { onAuthChange } from '@/lib/auth';
+import { joinCommunity, leaveCommunity } from '@/lib/communities';
 import { type Community } from '@/lib/types';
+import { collection, onSnapshot } from 'firebase/firestore';
+import { getDb } from '@/lib/firebase';
 
 export default function CommunitiesScreen() {
   const router = useRouter();
@@ -14,38 +16,51 @@ export default function CommunitiesScreen() {
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
-    const unsubscribe = onAuthChange(async (currentUser) => {
+    const unsubscribe = onAuthChange((currentUser) => {
       if (!currentUser) {
         router.replace('/(auth)/login');
         return;
       }
       setUser(currentUser);
-      await loadData();
+      setLoading(false);
     });
 
     return () => unsubscribe();
   }, []);
 
-  async function loadData() {
-    try {
-      setLoading(true);
-      const [all, myComms] = await Promise.all([
-        getAllCommunities(),
-        getMyCommunities()
-      ]);
-      setCommunities(all);
-      setMyCommunities(myComms.map(c => c.id));
-    } catch (error) {
-      console.error('Error loading communities:', error);
-    } finally {
-      setLoading(false);
-    }
-  }
+  useEffect(() => {
+    // Load all communities with real-time updates
+    const unsub = onSnapshot(collection(getDb(), 'communities'), (snap) => {
+      const allCommunities = snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) } as Community));
+      // Filter out deleted communities and sort by creation date
+      const activeCommunities = allCommunities
+        .filter(community => !community.deleted)
+        .sort((a, b) => {
+          const aTime = a.createdAt?.seconds || 0;
+          const bTime = b.createdAt?.seconds || 0;
+          return bTime - aTime;
+        });
+      setCommunities(activeCommunities);
+      
+      // Update my communities list
+      if (user?.uid) {
+        const myComms = activeCommunities
+          .filter(c => c.members?.includes(user.uid))
+          .map(c => c.id);
+        setMyCommunities(myComms);
+      }
+    }, (error) => {
+      console.error('Error fetching communities:', error);
+    });
+
+    return () => unsub();
+  }, [user?.uid]);
 
   async function handleJoin(communityId: string) {
     try {
-      await joinCommunity(communityId);
-      setMyCommunities([...myCommunities, communityId]);
+      if (!user?.uid) return;
+      await joinCommunity(communityId, user.uid);
+      // State will update automatically via onSnapshot
     } catch (error) {
       console.error('Error joining community:', error);
     }
@@ -53,17 +68,20 @@ export default function CommunitiesScreen() {
 
   async function handleLeave(communityId: string) {
     try {
-      await leaveCommunity(communityId);
-      setMyCommunities(myCommunities.filter(id => id !== communityId));
+      if (!user?.uid) return;
+      await leaveCommunity(communityId, user.uid);
+      // State will update automatically via onSnapshot
     } catch (error) {
       console.error('Error leaving community:', error);
     }
   }
 
-  const filteredCommunities = communities.filter(c =>
-    c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    c.description.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredCommunities = useMemo(() => {
+    return communities.filter(c =>
+      c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      c.description.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [communities, searchQuery]);
 
   if (loading) {
     return (
