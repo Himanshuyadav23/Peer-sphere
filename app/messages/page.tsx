@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { getFirebaseAuth, getDb } from '@/lib/firebase';
 import { listenToRecentConversations } from '@/lib/messages';
 import { Card, CardContent } from '@/components/ui/card';
@@ -14,6 +15,7 @@ import { MessageCircle, Search, Plus, Users, Heart, Send } from 'lucide-react';
 
 export default function MessagesPage() {
 	const auth = getFirebaseAuth();
+	const router = useRouter();
 	const me = auth.currentUser?.uid || '';
 	const [rows, setRows] = useState<any[]>([]);
 	const [userMap, setUserMap] = useState<Record<string, any>>({});
@@ -122,7 +124,7 @@ export default function MessagesPage() {
 								<div className="flex gap-3 justify-center">
 									<Button 
 										className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-300"
-										onClick={() => window.location.href = '/matches'}
+										onClick={() => router.push('/matches')}
 									>
 										<Heart className="w-4 h-4 mr-2" />
 										Find Matches
@@ -130,7 +132,7 @@ export default function MessagesPage() {
 									<Button 
 										variant="outline"
 										className="border-2 border-gray-300 hover:border-pink-500 hover:text-pink-600 bg-white/80 shadow-lg hover:shadow-xl transition-all duration-300"
-										onClick={() => window.location.href = '/communities'}
+										onClick={() => router.push('/communities')}
 									>
 										<Users className="w-4 h-4 mr-2" />
 										Join Communities
@@ -220,7 +222,7 @@ export default function MessagesPage() {
 										<Button 
 											variant="outline"
 											className="border-2 border-gray-300 hover:border-pink-500 hover:text-pink-600 bg-white/80 shadow-lg hover:shadow-xl transition-all duration-300"
-											onClick={() => window.location.href = '/matches'}
+											onClick={() => router.push('/matches')}
 										>
 											<Heart className="w-4 h-4 mr-2" />
 											Find New Matches
@@ -228,7 +230,7 @@ export default function MessagesPage() {
 										<Button 
 											variant="outline"
 											className="border-2 border-gray-300 hover:border-purple-500 hover:text-purple-600 bg-white/80 shadow-lg hover:shadow-xl transition-all duration-300"
-											onClick={() => window.location.href = '/communities'}
+											onClick={() => router.push('/communities')}
 										>
 											<Users className="w-4 h-4 mr-2" />
 											Browse Communities

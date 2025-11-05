@@ -21,29 +21,25 @@ export default function MatchesPage() {
 	useEffect(() => {
 		if (!me) return;
 		
-		// Debounce loading to prevent rapid re-renders
-		const timeoutId = setTimeout(() => {
-			const loadMatches = async () => {
-				setLoading(true);
-				try {
-					if (activeTab === 'smart') {
-						const smartMatches = await getSmartMatches(me);
-						setMatches(smartMatches);
-					} else {
-						const interestMatches = await getTopMatches(me, 20);
-						setMatches(interestMatches);
-					}
-				} catch (error) {
-					console.error('Error loading matches:', error);
-				} finally {
-					setLoading(false);
+		const loadMatches = async () => {
+			setLoading(true);
+			try {
+				if (activeTab === 'smart') {
+					const smartMatches = await getSmartMatches(me);
+					setMatches(smartMatches);
+				} else {
+					const interestMatches = await getTopMatches(me, 20);
+					setMatches(interestMatches);
 				}
-			};
+			} catch (error) {
+				console.error('Error loading matches:', error);
+				setMatches([]);
+			} finally {
+				setLoading(false);
+			}
+		};
 
-			loadMatches();
-		}, 100);
-
-		return () => clearTimeout(timeoutId);
+		loadMatches();
 	}, [me, activeTab]);
 
 	const getMatchPercentage = (score: number, maxScore: number = 5) => {
