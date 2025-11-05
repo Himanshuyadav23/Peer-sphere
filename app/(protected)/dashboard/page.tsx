@@ -39,7 +39,10 @@ export default function DashboardPage() {
 		// Load upcoming events
 		const q2 = query(collection(getDb(), 'events'), limit(5));
 		const unsub2 = onSnapshot(q2, (snap) => {
-			setUpcomingEvents(snap.docs.map(d => ({ id: d.id, ...(d.data() as any) } as EventDoc)));
+			const events = snap.docs
+				.map(d => ({ id: d.id, ...(d.data() as any) } as EventDoc))
+				.filter(e => !e.deleted); // Filter out deleted events
+			setUpcomingEvents(events);
 		});
 
 		// Load matches
