@@ -322,16 +322,16 @@ export default function AdminPanel() {
 							<Crown className="w-8 h-8 text-purple-600" />
 							<span>Manage Communities</span>
 						</Button>
+						<Button variant="outline" className="h-auto flex-col gap-2 py-6" onClick={() => router.push('/admin/events')}>
+							<Calendar className="w-8 h-8 text-orange-600" />
+							<span>Manage Events</span>
+						</Button>
 						<Button variant="outline" className="h-auto flex-col gap-2 py-6" onClick={() => {
 							const analyticsSection = document.getElementById('analytics-section');
 							analyticsSection?.scrollIntoView({ behavior: 'smooth' });
 						}}>
 							<TrendingUp className="w-8 h-8 text-green-600" />
 							<span>View Analytics</span>
-						</Button>
-						<Button variant="outline" className="h-auto flex-col gap-2 py-6" onClick={() => router.push('/admin/users')}>
-							<Ban className="w-8 h-8 text-red-600" />
-							<span>Ban Users</span>
 						</Button>
 					</div>
 				</CardContent>

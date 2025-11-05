@@ -10,9 +10,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import PageLayout from '@/components/page-layout';
-import { rsvpEvent, cancelRsvp } from '@/lib/events';
+import { rsvpEvent, cancelRsvp, deleteEvent } from '@/lib/events';
 import { toast } from 'sonner';
-import { Calendar as CalendarIcon, Clock, MapPin, Users, CheckCircle2, X } from 'lucide-react';
+import { Calendar as CalendarIcon, Clock, MapPin, Users, CheckCircle2, X, Trash2 } from 'lucide-react';
+import { doc, getDoc } from 'firebase/firestore';
 
 export default function EventDetailPage() {
 	const params = useParams<{ id: string }>();
@@ -22,8 +23,11 @@ export default function EventDetailPage() {
 	const [eventDoc, setEventDoc] = useState<EventDoc | null>(null);
 	const [loading, setLoading] = useState(true);
 	const [rsvpLoading, setRsvpLoading] = useState(false);
+	const [deleteLoading, setDeleteLoading] = useState(false);
+	const [isAdmin, setIsAdmin] = useState(false);
 	const uid = auth.currentUser?.uid;
 	const hasRsvped = useMemo(() => !!(eventDoc?.attendees || []).includes(uid || ''), [eventDoc, uid]);
+	const isCreator = useMemo(() => eventDoc?.createdBy === uid, [eventDoc, uid]);
 
 	useEffect(() => {
 		if (!id) return;
@@ -41,6 +45,22 @@ export default function EventDetailPage() {
 		});
 		return () => unsub();
 	}, [id]);
+
+	useEffect(() => {
+		async function checkAdmin() {
+			if (!uid) return;
+			try {
+				const db = getDb();
+				const userDoc = await getDoc(doc(db, 'users', uid));
+				if (userDoc.exists()) {
+					setIsAdmin(userDoc.data().isAdmin || false);
+				}
+			} catch (error) {
+				console.error('Error checking admin status:', error);
+			}
+		}
+		checkAdmin();
+	}, [uid]);
 
 	const formatDate = (dateString: string) => {
 		const date = new Date(dateString);
@@ -62,6 +82,23 @@ export default function EventDetailPage() {
 			toast.error(e.message || 'Failed');
 		} finally {
 			setRsvpLoading(false);
+		}
+	}
+
+	async function handleDelete() {
+		if (!confirm('Are you sure you want to delete this event? This action cannot be undone.')) {
+			return;
+		}
+		
+		setDeleteLoading(true);
+		try {
+			await deleteEvent(id);
+			toast.success('Event deleted successfully');
+			router.push('/events');
+		} catch (e: any) {
+			toast.error(e.message || 'Failed to delete event');
+		} finally {
+			setDeleteLoading(false);
 		}
 	}
 
@@ -100,26 +137,39 @@ export default function EventDetailPage() {
 			showBack={true}
 			backHref="/events"
 			action={
-				<Button
-					onClick={onToggleRsvp}
-					disabled={rsvpLoading}
-					className={hasRsvped 
-						? "bg-green-600 hover:bg-green-700 text-white gap-2" 
-						: "bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white gap-2"
-					}
-				>
-					{hasRsvped ? (
-						<>
-							<CheckCircle2 className="h-4 w-4" />
-							RSVP'd
-						</>
-					) : (
-						<>
-							<CalendarIcon className="h-4 w-4" />
-							RSVP Now
-						</>
+				<div className="flex gap-2">
+					{(isCreator || isAdmin) && (
+						<Button
+							onClick={handleDelete}
+							disabled={deleteLoading}
+							variant="destructive"
+							className="gap-2"
+						>
+							<Trash2 className="h-4 w-4" />
+							{deleteLoading ? 'Deleting...' : 'Delete'}
+						</Button>
 					)}
-				</Button>
+					<Button
+						onClick={onToggleRsvp}
+						disabled={rsvpLoading}
+						className={hasRsvped 
+							? "bg-green-600 hover:bg-green-700 text-white gap-2" 
+							: "bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white gap-2"
+						}
+					>
+						{hasRsvped ? (
+							<>
+								<CheckCircle2 className="h-4 w-4" />
+								RSVP'd
+							</>
+						) : (
+							<>
+								<CalendarIcon className="h-4 w-4" />
+								RSVP Now
+							</>
+						)}
+					</Button>
+				</div>
 			}
 		>
 			<div className="space-y-6">

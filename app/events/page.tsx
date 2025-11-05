@@ -18,7 +18,10 @@ export default function EventsListPage() {
 	useEffect(() => {
 		const q = query(collection(getDb(), 'events'), orderBy('date'));
 		const unsub = onSnapshot(q, (snap) => {
-			setEvents(snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) } as EventDoc)));
+			const allEvents = snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) } as EventDoc));
+			// Filter out deleted events
+			const activeEvents = allEvents.filter(e => !e.deleted);
+			setEvents(activeEvents);
 			setLoading(false);
 		}, (error) => {
 			console.error('Error loading events:', error);

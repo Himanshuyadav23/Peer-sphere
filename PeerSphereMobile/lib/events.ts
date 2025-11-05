@@ -21,7 +21,9 @@ export async function createEvent(input: Omit<EventDoc, 'id' | 'attendees' | 'cr
 export async function getAllEvents(): Promise<EventDoc[]> {
 	const db = getDb();
 	const snap = await getDocs(collection(db, 'events'));
-	return snap.docs.map(d => ({ id: d.id, ...(d.data() as any) } as EventDoc));
+	return snap.docs
+		.map(d => ({ id: d.id, ...(d.data() as any) } as EventDoc))
+		.filter(e => !e.deleted); // Filter out deleted events
 }
 
 export async function rsvpEvent(eventId: string, uid: string) {
@@ -44,4 +46,13 @@ export async function getEvent(eventId: string): Promise<EventDoc | null> {
 	const snap = await getDoc(doc(db, 'events', eventId));
 	if (!snap.exists()) return null;
 	return { id: snap.id, ...(snap.data() as any) } as EventDoc;
+}
+
+export async function deleteEvent(eventId: string): Promise<void> {
+	const db = getDb();
+	const ref = doc(collection(db, 'events'), eventId);
+	await updateDoc(ref, {
+		deleted: true,
+		deletedAt: new Date(),
+	});
 }
