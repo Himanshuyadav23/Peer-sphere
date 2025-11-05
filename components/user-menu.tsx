@@ -8,7 +8,6 @@ import { doc, getDoc } from 'firebase/firestore';
 import { getDb } from '@/lib/firebase';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Smartphone } from 'lucide-react';
 
 export default function UserMenu() {
 	const auth = getFirebaseAuth();
@@ -43,11 +42,6 @@ export default function UserMenu() {
 				<DropdownMenuLabel>{user?.displayName || user?.email}</DropdownMenuLabel>
 				<DropdownMenuSeparator />
 				<DropdownMenuItem onClick={() => router.push(`/profile/${user?.uid}`)}>My Profile</DropdownMenuItem>
-				<DropdownMenuItem onClick={() => router.push('/mobile-app')}>
-					<Smartphone className="mr-2 h-4 w-4" />
-					Mobile App
-				</DropdownMenuItem>
-				<DropdownMenuSeparator />
 				<DropdownMenuItem onClick={onSignOut}>Sign out</DropdownMenuItem>
 			</DropdownMenuContent>
 		</DropdownMenu>
