@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { doc, onSnapshot } from 'firebase/firestore';
+import { doc, onSnapshot, getDoc } from 'firebase/firestore';
 import { getDb, getFirebaseAuth } from '@/lib/firebase';
 import type { EventDoc } from '@/lib/types';
 import { Button } from '@/components/ui/button';
@@ -13,7 +13,6 @@ import PageLayout from '@/components/page-layout';
 import { rsvpEvent, cancelRsvp, deleteEvent } from '@/lib/events';
 import { toast } from 'sonner';
 import { Calendar as CalendarIcon, Clock, MapPin, Users, CheckCircle2, X, Trash2 } from 'lucide-react';
-import { doc, getDoc } from 'firebase/firestore';
 
 export default function EventDetailPage() {
 	const params = useParams<{ id: string }>();
