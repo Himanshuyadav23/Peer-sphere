@@ -10,7 +10,11 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import PageLayout from '@/components/page-layout';
-import { User, Mail, GraduationCap, Calendar, MessageCircle, Edit, Heart, Users } from 'lucide-react';
+import { User, Mail, GraduationCap, Calendar, MessageCircle, Edit, Heart, Users, Lock } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { toast } from 'sonner';
+import { reauthenticateWithCredential, updatePassword, EmailAuthProvider } from 'firebase/auth';
 
 export default function UserProfilePage() {
 	const params = useParams<{ uid: string }>();
@@ -22,6 +26,10 @@ export default function UserProfilePage() {
 	
 	const [userDoc, setUserDoc] = useState<UserDoc | null>(null);
 	const [loading, setLoading] = useState(true);
+	const [pwLoading, setPwLoading] = useState(false);
+	const [currentPassword, setCurrentPassword] = useState('');
+	const [newPassword, setNewPassword] = useState('');
+	const [confirmPassword, setConfirmPassword] = useState('');
 
 	useEffect(() => {
 		if (!uid) return;
@@ -34,6 +42,43 @@ export default function UserProfilePage() {
 			setLoading(false);
 		});
 	}, [uid]);
+
+	async function handleChangePassword() {
+		if (!auth.currentUser?.email) {
+			toast.error('You must be logged in to change password');
+			return;
+		}
+		if (!currentPassword || !newPassword || !confirmPassword) {
+			toast.error('Please fill all password fields');
+			return;
+		}
+		if (newPassword.length < 8) {
+			toast.error('New password must be at least 8 characters');
+			return;
+		}
+		if (newPassword !== confirmPassword) {
+			toast.error('New passwords do not match');
+			return;
+		}
+		try {
+			setPwLoading(true);
+			const credential = EmailAuthProvider.credential(auth.currentUser.email, currentPassword);
+			await reauthenticateWithCredential(auth.currentUser, credential);
+			await updatePassword(auth.currentUser, newPassword);
+			setCurrentPassword('');
+			setNewPassword('');
+			setConfirmPassword('');
+			toast.success('Password updated successfully');
+		} catch (error: any) {
+			console.error('Error changing password:', error);
+			const message = error?.code === 'auth/wrong-password' 
+				? 'Current password is incorrect'
+				: (error?.message || 'Failed to change password');
+			toast.error(message);
+		} finally {
+			setPwLoading(false);
+		}
+	}
 
 	if (loading) {
 		return (
@@ -212,6 +257,37 @@ export default function UserProfilePage() {
 						)}
 					</CardContent>
 				</Card>
+
+				{/* Change Password (Own Profile Only) */}
+				{isOwnProfile && (
+					<Card className="bg-white/80 backdrop-blur-sm border-white/20 shadow-xl">
+						<CardHeader>
+							<CardTitle className="flex items-center gap-2">
+								<Lock className="w-5 h-5 text-red-600" />
+								Change Password
+							</CardTitle>
+						</CardHeader>
+						<CardContent>
+							<div className="grid gap-3 sm:grid-cols-3">
+								<div className="space-y-2">
+									<Label htmlFor="currentPassword">Current Password</Label>
+									<Input id="currentPassword" type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} placeholder="••••••••" />
+								</div>
+								<div className="space-y-2">
+									<Label htmlFor="newPassword">New Password</Label>
+									<Input id="newPassword" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="At least 8 characters" />
+								</div>
+								<div className="space-y-2">
+									<Label htmlFor="confirmPassword">Confirm New Password</Label>
+									<Input id="confirmPassword" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Repeat new password" />
+								</div>
+							</div>
+							<Button onClick={handleChangePassword} disabled={pwLoading} className="mt-3 w-full sm:w-auto">
+								{pwLoading ? 'Updating...' : 'Update Password'}
+							</Button>
+						</CardContent>
+					</Card>
+				)}
 			</div>
 		</PageLayout>
 	);
