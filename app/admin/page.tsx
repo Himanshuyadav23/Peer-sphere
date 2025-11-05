@@ -318,9 +318,9 @@ export default function AdminPanel() {
 							<Users className="w-8 h-8 text-blue-600" />
 							<span>Manage Users</span>
 						</Button>
-						<Button variant="outline" className="h-auto flex-col gap-2 py-6" disabled>
-							<Shield className="w-8 h-8 text-purple-600" />
-							<span>Content Moderation</span>
+						<Button variant="outline" className="h-auto flex-col gap-2 py-6" onClick={() => router.push('/admin/communities')}>
+							<Crown className="w-8 h-8 text-purple-600" />
+							<span>Manage Communities</span>
 						</Button>
 						<Button variant="outline" className="h-auto flex-col gap-2 py-6" onClick={() => {
 							const analyticsSection = document.getElementById('analytics-section');
