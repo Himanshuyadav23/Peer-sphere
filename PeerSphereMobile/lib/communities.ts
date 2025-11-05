@@ -62,14 +62,18 @@ export async function getCommunity(communityId: string): Promise<Community | nul
 export async function getAllCommunities(): Promise<Community[]> {
   const db = getDb();
   const snap = await getDocs(collection(db, 'communities'));
-  return snap.docs.map(doc => ({ id: doc.id, ...(doc.data() as any) } as Community));
+  return snap.docs
+    .map(doc => ({ id: doc.id, ...(doc.data() as any) } as Community))
+    .filter(c => !c.deleted); // Filter out deleted communities
 }
 
 export async function getMyCommunities(uid: string): Promise<Community[]> {
   const db = getDb();
   const q = query(collection(db, 'communities'), where('members', 'array-contains', uid));
   const snap = await getDocs(q);
-  return snap.docs.map(doc => ({ id: doc.id, ...(doc.data() as any) } as Community));
+  return snap.docs
+    .map(doc => ({ id: doc.id, ...(doc.data() as any) } as Community))
+    .filter(c => !c.deleted); // Filter out deleted communities
 }
 
 

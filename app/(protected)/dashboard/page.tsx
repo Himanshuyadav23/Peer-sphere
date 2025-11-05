@@ -30,7 +30,10 @@ export default function DashboardPage() {
 			limit(5)
 		);
 		const unsub1 = onSnapshot(q1, (snap) => {
-			setMyCommunities(snap.docs.map(d => ({ id: d.id, ...(d.data() as any) } as Community)));
+			const communities = snap.docs
+				.map(d => ({ id: d.id, ...(d.data() as any) } as Community))
+				.filter(c => !c.deleted); // Filter out deleted communities
+			setMyCommunities(communities);
 		});
 
 		// Load upcoming events
