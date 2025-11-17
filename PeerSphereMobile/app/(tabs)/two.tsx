@@ -1,4 +1,4 @@
-import { StyleSheet, ScrollView, Text, View, TouchableOpacity, Image } from 'react-native';
+import { StyleSheet, ScrollView, Text, View, TouchableOpacity, Image, Linking } from 'react-native';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'expo-router';
 import { getCurrentUser, onAuthChange, logout } from '@/lib/auth';
@@ -92,6 +92,17 @@ export default function ProfileScreen() {
       >
         <Text style={styles.buttonText}>Logout</Text>
       </TouchableOpacity>
+
+      {/* Creator Attribution */}
+      <View style={styles.creatorSection}>
+        <Text style={styles.creatorText}>Built by</Text>
+        <TouchableOpacity 
+          onPress={() => Linking.openURL('https://himanshuuyadav.netlify.app/')}
+        >
+          <Text style={styles.creatorLink}>Himanshu Yadav</Text>
+        </TouchableOpacity>
+        <Text style={styles.creatorSubtext}>Made with ❤️ for SCSIT DAVV</Text>
+      </View>
     </ScrollView>
   );
 }
@@ -161,5 +172,28 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontSize: 16,
     fontWeight: '600',
+  },
+  creatorSection: {
+    padding: 20,
+    alignItems: 'center',
+    borderTopWidth: 1,
+    borderTopColor: '#e5e7eb',
+    marginTop: 20,
+  },
+  creatorText: {
+    fontSize: 14,
+    color: '#6b7280',
+    marginBottom: 4,
+  },
+  creatorLink: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#6366f1',
+    marginBottom: 4,
+  },
+  creatorSubtext: {
+    fontSize: 12,
+    color: '#9ca3af',
+    marginTop: 4,
   },
 });

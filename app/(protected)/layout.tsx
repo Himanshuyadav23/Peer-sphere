@@ -9,12 +9,13 @@ import NotificationsBell from '@/components/notifications-bell';
 import PageTransition from '@/components/page-transition';
 import UserMenu from '@/components/user-menu';
 import HeaderSearch from '@/components/header-search';
+import CreatorWatermark from '@/components/creator-watermark';
 
 export default function ProtectedLayout({ children }: { children: React.ReactNode }) {
 	return (
 		<AuthGate>
 			<div className="min-h-dvh grid grid-cols-1 lg:grid-cols-[280px_1fr] bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-100">
-				<aside className="hidden lg:block border-r border-white/20 bg-white/60 backdrop-blur-sm">
+				<aside className="hidden lg:block border-r border-white/20 bg-white/60 backdrop-blur-sm relative pb-20">
 					<div className="p-6">
 						<div className="flex items-center gap-3">
 							<div className="w-10 h-10 bg-gradient-to-br from-pink-500 to-purple-600 rounded-xl flex items-center justify-center">
@@ -46,6 +47,9 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
 						<NavLink href="/admin" icon={<Shield className="w-5 h-5" />}>Admin Panel</NavLink>
 					</div>
 					</nav>
+					<div className="absolute bottom-0 left-0 right-0 p-4 border-t border-white/20 bg-white/40 backdrop-blur-sm">
+						<CreatorWatermark variant="compact" />
+					</div>
 				</aside>
 				<div className="flex min-h-dvh flex-col bg-white/40 backdrop-blur-sm">
 					<header className="flex items-center gap-4 border-b border-white/20 px-6 py-4 bg-white/60 backdrop-blur-sm">

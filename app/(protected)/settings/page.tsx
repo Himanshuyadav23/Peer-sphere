@@ -9,7 +9,8 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import PageLayout from '@/components/page-layout';
-import { Settings, User, Bell, Shield, LogOut, Mail, Calendar, Users, Award, Lock } from 'lucide-react';
+import { Settings, User, Bell, Shield, LogOut, Mail, Calendar, Users, Award, Lock, Code } from 'lucide-react';
+import CreatorWatermark from '@/components/creator-watermark';
 import { toast } from 'sonner';
 import { signOut, reauthenticateWithCredential, updatePassword, EmailAuthProvider } from 'firebase/auth';
 import { Input } from '@/components/ui/input';
@@ -273,6 +274,26 @@ export default function SettingsPage() {
 							<Award className="w-5 h-5 mr-3 text-gray-600" />
 							Help Center
 						</Button>
+					</CardContent>
+				</Card>
+
+				{/* About / Creator Info */}
+				<Card className="bg-gradient-to-br from-pink-50/80 to-purple-50/80 backdrop-blur-sm border-pink-200/50 shadow-xl">
+					<CardHeader>
+						<CardTitle className="flex items-center gap-2">
+							<Code className="w-5 h-5 text-pink-600" />
+							About Peer Sphere
+						</CardTitle>
+					</CardHeader>
+					<CardContent>
+						<div className="space-y-3">
+							<p className="text-sm text-gray-700">
+								Peer Sphere is a social platform designed exclusively for SCSIT DAVV students to connect, collaborate, and build communities.
+							</p>
+							<div className="pt-3 border-t border-pink-200/50">
+								<CreatorWatermark variant="default" className="p-0" />
+							</div>
+						</div>
 					</CardContent>
 				</Card>
 

@@ -10,6 +10,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  Linking,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { signupWithEmail } from '@/lib/auth';
@@ -117,6 +118,16 @@ export default function SignupScreen() {
             </TouchableOpacity>
           </View>
         </View>
+
+        {/* Creator Attribution */}
+        <View style={styles.creatorSection}>
+          <Text style={styles.creatorText}>Made by</Text>
+          <TouchableOpacity 
+            onPress={() => Linking.openURL('https://himanshuuyadav.netlify.app/')}
+          >
+            <Text style={styles.creatorLink}>Himanshu Yadav</Text>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -204,5 +215,22 @@ const styles = StyleSheet.create({
     color: '#1a1a1a',
     fontSize: 14,
     fontWeight: '500',
+  },
+  creatorSection: {
+    marginTop: 24,
+    alignItems: 'center',
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#e5e7eb',
+  },
+  creatorText: {
+    fontSize: 12,
+    color: '#6b7280',
+    marginBottom: 4,
+  },
+  creatorLink: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#6366f1',
   },
 });

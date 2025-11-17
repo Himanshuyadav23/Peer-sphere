@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Heart, Users, MessageCircle, Calendar, Sparkles, ArrowRight } from 'lucide-react';
+import CreatorWatermark from '@/components/creator-watermark';
 
 export default function LandingPage() {
 	return (
@@ -186,6 +187,13 @@ export default function LandingPage() {
 					<div className="absolute -bottom-4 -left-4 w-12 h-12 bg-gradient-to-br from-blue-400 to-indigo-500 rounded-full opacity-60 animate-bounce delay-500" />
 				</div>
 			</section>
+
+			{/* Footer with Creator Attribution */}
+			<footer className="relative border-t border-white/20 bg-white/40 backdrop-blur-sm py-8">
+				<div className="mx-auto max-w-7xl px-6">
+					<CreatorWatermark variant="default" />
+				</div>
+			</footer>
 		</div>
 	);
 }
