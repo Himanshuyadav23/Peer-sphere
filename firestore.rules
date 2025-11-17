@@ -15,15 +15,20 @@ service cloud.firestore {
     }
     
     // Communities - authenticated users can read all, create new ones, and update if they're the creator
+    // Any authenticated user can update the members field for joining/leaving
     // Admins can delete any community
     match /communities/{communityId} {
       allow read: if request.auth != null;
       allow list: if request.auth != null; // Allow listing for authenticated users
       allow create: if request.auth != null && request.auth.uid == request.resource.data.createdBy;
-      allow update: if request.auth != null && 
-        (request.auth.uid == resource.data.createdBy || 
-         request.auth.uid in resource.data.members || 
-         isAdmin());
+      allow update: if request.auth != null && (
+        // Creator can update anything
+        request.auth.uid == resource.data.createdBy ||
+        // Admins can update anything
+        isAdmin() ||
+        // Any authenticated user can update only the members field (for joining/leaving)
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['members'])
+      );
       allow delete: if request.auth != null && (request.auth.uid == resource.data.createdBy || isAdmin());
     }
     
@@ -35,9 +40,10 @@ service cloud.firestore {
       allow list: if request.auth != null; // Allow listing for authenticated users
       allow create: if request.auth != null && request.auth.uid == request.resource.data.createdBy;
       allow update: if request.auth != null && (
+        // Creator can update anything
         request.auth.uid == resource.data.createdBy || 
-        // Allow updating only the attendees field for RSVP
-        (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['attendees'])) ||
+        // Allow any authenticated user to update only the attendees field for RSVP
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['attendees']) ||
         // Allow admins to update deleted/deletedAt fields for soft deletion
         (isAdmin() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['deleted', 'deletedAt']))
       );

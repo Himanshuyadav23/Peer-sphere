@@ -5,6 +5,13 @@ import type { Community } from './types';
 export async function joinCommunity(communityId: string, uid: string) {
 	const db = getDb();
 	const ref = doc(collection(db, 'communities'), communityId);
+	
+	// Ensure the community exists and get current data
+	const communitySnap = await getDoc(ref);
+	if (!communitySnap.exists()) {
+		throw new Error('Community not found');
+	}
+	
 	await updateDoc(ref, {
 		members: arrayUnion(uid),
 	});
