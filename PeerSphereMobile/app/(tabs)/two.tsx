@@ -1,16 +1,24 @@
-import { StyleSheet, ScrollView, Text, View, TouchableOpacity, Image, Linking } from 'react-native';
+import { StyleSheet, ScrollView, Text, View, TouchableOpacity, Image, Linking, TextInput, Alert, ActivityIndicator } from 'react-native';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'expo-router';
 import { getCurrentUser, onAuthChange, logout } from '@/lib/auth';
 import { getDoc, doc } from 'firebase/firestore';
 import { getDb } from '@/lib/firebase';
 import { type UserDoc } from '@/lib/types';
+import { reauthenticateWithCredential, updatePassword, EmailAuthProvider } from 'firebase/auth';
+import { getFirebaseAuth } from '@/lib/firebase';
 
 export default function ProfileScreen() {
   const router = useRouter();
+  const auth = getFirebaseAuth();
   const [user, setUser] = useState<any>(null);
   const [userDoc, setUserDoc] = useState<UserDoc | null>(null);
   const [loading, setLoading] = useState(true);
+  const [pwLoading, setPwLoading] = useState(false);
+  const [showPasswordForm, setShowPasswordForm] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
 
   useEffect(() => {
     const unsubscribe = onAuthChange(async (currentUser) => {
@@ -48,6 +56,46 @@ export default function ProfileScreen() {
     }
   }
 
+  async function handleChangePassword() {
+    const currentUser = auth.currentUser;
+    if (!currentUser?.email) {
+      Alert.alert('Error', 'You must be logged in to change password');
+      return;
+    }
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      Alert.alert('Error', 'Please fill all password fields');
+      return;
+    }
+    if (newPassword.length < 8) {
+      Alert.alert('Error', 'New password must be at least 8 characters');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      Alert.alert('Error', 'New passwords do not match');
+      return;
+    }
+    try {
+      setPwLoading(true);
+      // Reauthenticate before sensitive operation
+      const credential = EmailAuthProvider.credential(currentUser.email, currentPassword);
+      await reauthenticateWithCredential(currentUser, credential);
+      await updatePassword(currentUser, newPassword);
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+      setShowPasswordForm(false);
+      Alert.alert('Success', 'Password updated successfully');
+    } catch (error: any) {
+      console.error('Error changing password:', error);
+      const message = error?.code === 'auth/wrong-password' 
+        ? 'Current password is incorrect'
+        : (error?.message || 'Failed to change password');
+      Alert.alert('Error', message);
+    } finally {
+      setPwLoading(false);
+    }
+  }
+
   if (loading) {
     return (
       <View style={styles.container}>
@@ -82,6 +130,70 @@ export default function ProfileScreen() {
           <View style={styles.infoRow}>
             <Text style={styles.label}>Interests</Text>
             <Text style={styles.value}>{userDoc.interests.join(', ')}</Text>
+          </View>
+        )}
+      </View>
+
+      {/* Change Password Section */}
+      <View style={styles.section}>
+        <TouchableOpacity 
+          style={styles.passwordToggleButton}
+          onPress={() => setShowPasswordForm(!showPasswordForm)}
+        >
+          <Text style={styles.passwordToggleText}>
+            {showPasswordForm ? '▼ Hide Change Password' : '▶ Change Password'}
+          </Text>
+        </TouchableOpacity>
+
+        {showPasswordForm && (
+          <View style={styles.passwordForm}>
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Current Password</Text>
+              <TextInput
+                style={styles.input}
+                value={currentPassword}
+                onChangeText={setCurrentPassword}
+                placeholder="Enter current password"
+                secureTextEntry
+                placeholderTextColor="#999"
+              />
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>New Password</Text>
+              <TextInput
+                style={styles.input}
+                value={newPassword}
+                onChangeText={setNewPassword}
+                placeholder="At least 8 characters"
+                secureTextEntry
+                placeholderTextColor="#999"
+              />
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Confirm New Password</Text>
+              <TextInput
+                style={styles.input}
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+                placeholder="Repeat new password"
+                secureTextEntry
+                placeholderTextColor="#999"
+              />
+            </View>
+
+            <TouchableOpacity
+              style={[styles.passwordButton, pwLoading && styles.buttonDisabled]}
+              onPress={handleChangePassword}
+              disabled={pwLoading}
+            >
+              {pwLoading ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text style={styles.passwordButtonText}>Update Password</Text>
+              )}
+            </TouchableOpacity>
           </View>
         )}
       </View>
@@ -195,5 +307,47 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#9ca3af',
     marginTop: 4,
+  },
+  passwordToggleButton: {
+    padding: 12,
+    backgroundColor: '#f3f4f6',
+    borderRadius: 8,
+    marginBottom: 12,
+  },
+  passwordToggleText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#6366f1',
+  },
+  passwordForm: {
+    marginTop: 8,
+  },
+  inputGroup: {
+    marginBottom: 16,
+  },
+  input: {
+    backgroundColor: '#f9fafb',
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 16,
+    color: '#111827',
+    marginTop: 8,
+  },
+  passwordButton: {
+    backgroundColor: '#6366f1',
+    padding: 14,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  passwordButtonText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  buttonDisabled: {
+    opacity: 0.6,
   },
 });
